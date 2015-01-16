@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2014-2015 bboyfeiyu@gmail.com, Inc
+ * Copyright (c) 2014-2015 Umeng, Inc
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,50 +22,21 @@
  * THE SOFTWARE.
  */
 
-package org.simple.imageloader.cache;
+package org.simple.imageloader.policy;
 
-import android.graphics.Bitmap;
-import android.support.v4.util.LruCache;
+import org.simple.imageloader.request.BitmapRequest;
 
 /**
- * 图片的内存缓存,key为图片的uri,值为图片本身
+ * 先进先出策略
  * 
  * @author mrsimple
  */
-public class MemoryCache extends BitmapCache {
-
-    private LruCache<String, Bitmap> mMemeryCache;
-
-    public MemoryCache() {
-
-        // 计算可使用的最大内存
-        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-
-        // 取4分之一的可用内存作为缓存
-        final int cacheSize = maxMemory / 4;
-        mMemeryCache = new LruCache<String, Bitmap>(cacheSize) {
-
-            @Override
-            protected int sizeOf(String key, Bitmap bitmap) {
-                return bitmap.getRowBytes() * bitmap.getHeight() / 1024;
-            }
-        };
-
-    }
+public class FIFOPolicy implements LoadPolicy {
 
     @Override
-    public Bitmap get(String key) {
-        return mMemeryCache.get(key);
-    }
-
-    @Override
-    public void put(String key, Bitmap value) {
-        mMemeryCache.put(key, value);
-    }
-
-    @Override
-    public void remove(String key) {
-        mMemeryCache.remove(key);
+    public int compare(BitmapRequest request1, BitmapRequest request2) {
+        // TODO Auto-generated method stub
+        return 0;
     }
 
 }

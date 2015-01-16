@@ -22,16 +22,25 @@
  * THE SOFTWARE.
  */
 
-package org.simple.imageloader.policy;
+package org.simple.imageloader.cache;
 
-import org.simple.imageloader.request.BitmapRequest;
+import android.graphics.Bitmap;
 
-public class SerialPolicy implements LoadPolicy {
+public class NoCache extends BitmapCache {
 
     @Override
-    public int compare(BitmapRequest request1, BitmapRequest request2) {
-        // TODO Auto-generated method stub
-        return 0;
+    public Bitmap get(String key) {
+        return null;
+    }
+
+    @Override
+    public void put(String key, Bitmap value) {
+
+    }
+
+    @Override
+    public void remove(String key) {
+
     }
 
 }

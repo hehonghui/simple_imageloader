@@ -28,6 +28,8 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
+import org.simple.imageloader.core.SimpleImageLoader;
+
 public class NetworkImageView extends ImageView {
 
     public NetworkImageView(Context context) {
@@ -46,7 +48,7 @@ public class NetworkImageView extends ImageView {
      * @param url
      */
     public void setImageUrl(String url) {
-
+        SimpleImageLoader.getInstance().displayImage(this, url);
     }
 
 }

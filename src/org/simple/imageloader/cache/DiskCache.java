@@ -142,7 +142,20 @@ public class DiskCache extends BitmapCache {
 
     @Override
     public synchronized Bitmap get(String key) {
-        return decodeFromStream(Md5Helper.toMD5(key));
+
+        final String md5 = Md5Helper.toMD5(key);
+        BitmapDecoder decoder = new BitmapDecoder() {
+
+            @Override
+            public Bitmap decodeBitmapWithOption(Options options) {
+                InputStream inputStream = getInputStream(md5);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
+                Util.closeQuietly(inputStream);
+                return bitmap;
+            }
+        };
+
+        return decoder.decodeBitmap(1000, 1000);
     }
 
     private InputStream getInputStream(String md5) {
@@ -158,21 +171,6 @@ public class DiskCache extends BitmapCache {
         return null;
     }
 
-    private Bitmap decodeFromStream(final String md5) {
-        BitmapDecoder decoder = new BitmapDecoder() {
-
-            @Override
-            public Bitmap decodeBitmapWithOption(Options options) {
-                InputStream inputStream = getInputStream(md5);
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
-                Util.closeQuietly(inputStream);
-                return bitmap;
-            }
-        };
-
-        return decoder.decodeBitmap(200, 200);
-    }
-
     @Override
     public void put(String key, Bitmap value) {
         DiskLruCache.Editor editor = null;
@@ -184,7 +182,7 @@ public class DiskCache extends BitmapCache {
                 if (writeBitmapToDisk(value, outputStream)) {
                     // 写入disk缓存
                     editor.commit();
-                    mDiskLruCache.flush();
+                    // mDiskLruCache.flush();
                 } else {
                     editor.abort();
                 }
@@ -217,12 +215,6 @@ public class DiskCache extends BitmapCache {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public boolean contains(String key) {
-        Bitmap bitmap = get(key);
-        return bitmap != null;
     }
 
 }

@@ -47,7 +47,10 @@ public class BestCache extends BitmapCache {
         Bitmap value = mMemoryCache.get(key);
         if (value == null) {
             value = mDiskCache.get(key);
+            Log.d(key, "### sd缓存 key : " + key + ", value = " + value);
             saveBitmapIntoMemory(key, value);
+        } else {
+            Log.e("", "### 有内存缓存 : " + key);
         }
         return value;
     }
@@ -69,16 +72,6 @@ public class BestCache extends BitmapCache {
     public void remove(String key) {
         mDiskCache.remove(key);
         mMemoryCache.remove(key);
-    }
-
-    @Override
-    public boolean contains(String key) {
-        boolean value = mMemoryCache.contains(key);
-        if (value) {
-            Log.e("", "### 含有内存缓存");
-            return true;
-        }
-        return mDiskCache.contains(key);
     }
 
 }

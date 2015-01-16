@@ -27,7 +27,7 @@ package org.simple.imageloader.config;
 import org.simple.imageloader.cache.BitmapCache;
 import org.simple.imageloader.cache.MemoryCache;
 import org.simple.imageloader.policy.LoadPolicy;
-import org.simple.imageloader.policy.SerialPolicy;
+import org.simple.imageloader.policy.FIFOPolicy;
 
 /**
  * @author mrsimple
@@ -38,7 +38,7 @@ public class ImageLoaderConfig {
 
     public DisplayConfig displayConfig = new DisplayConfig();
 
-    public LoadPolicy loadPolicy = new SerialPolicy();
+    public LoadPolicy loadPolicy = new FIFOPolicy();
 
     public ImageLoaderConfig setCache(BitmapCache cache) {
         bitmapCache = cache;

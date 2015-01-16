@@ -26,7 +26,12 @@ package org.simple.imageloader.policy;
 
 import org.simple.imageloader.request.BitmapRequest;
 
-public class ReversePolicy implements LoadPolicy {
+/**
+ * 后进先出策略
+ * 
+ * @author mrsimple
+ */
+public class LIFOPolicy implements LoadPolicy {
 
     @Override
     public int compare(BitmapRequest request1, BitmapRequest request2) {

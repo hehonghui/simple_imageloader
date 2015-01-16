@@ -25,15 +25,13 @@
 package org.simple.imageloader.core;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.widget.ImageView;
 
+import org.simple.imageloader.bean.RequestContainer;
 import org.simple.imageloader.cache.BitmapCache;
 import org.simple.imageloader.cache.MemoryCache;
 import org.simple.imageloader.config.DisplayConfig;
 import org.simple.imageloader.config.ImageLoaderConfig;
-import org.simple.imageloader.request.BitmapRequest;
-import org.simple.net.base.Request.RequestListener;
 import org.simple.net.core.RequestQueue;
 
 /**
@@ -50,21 +48,41 @@ public class SimpleImageLoader {
      * 
      */
     private RequestQueue mImageQueue = RequestQueue.newRequestQueue();
-
+    /**
+     * 
+     */
     volatile BitmapCache mCache = new MemoryCache();
 
+    /**
+     * 
+     */
     private ImageLoaderConfig mConfig = new ImageLoaderConfig();
 
+    /**
+     * 
+     */
+    ImageDispatcher mDispatcher;
+
+    /**
+     * 
+     */
     private SimpleImageLoader() {
     }
 
+    /**
+     * @return
+     */
     public static SimpleImageLoader getInstance() {
         return sInstance;
     }
 
+    /**
+     * @param config
+     */
     public void init(ImageLoaderConfig config) {
         mConfig = config;
         mCache = mConfig.bitmapCache;
+        mDispatcher = new ImageDispatcher(mImageQueue, mCache);
     }
 
     public void displayImage(ImageView imageView, String uri) {
@@ -80,50 +98,10 @@ public class SimpleImageLoader {
     }
 
     public void displayImage(final ImageView imageView, final String uri,
-            final DisplayConfig config,
-            final ImageListener listener) {
+            final DisplayConfig config, final ImageListener listener) {
 
-        if (mCache.contains(uri)) {
-            Bitmap value = mCache.get(uri);
-            if (listener != null) {
-                listener.onComplete(imageView, value, uri);
-            }
-
-            if (imageView != null && value != null) {
-                imageView.setImageBitmap(value);
-            }
-
-            return;
-        }
-
-        Log.e("", "### image loader 没有缓存  ");
-
-        // 设置tag
-        imageView.setTag(uri);
-        imageView.setImageResource(mConfig.displayConfig.loadingResId);
-        BitmapRequest bitmapRequest = new BitmapRequest(uri, new RequestListener<Bitmap>() {
-            @Override
-            public void onComplete(int stCode, Bitmap response, String errMsg) {
-                Log.e("", "### 执行网络请求 : stCode : " + stCode + ", response : " + response);
-                if (stCode == 200 && response != null && imageView.getTag().equals(uri)) {
-                    imageView.setImageBitmap(response);
-                    mCache.put(uri, response);
-                } else if (stCode != 200) {
-                    imageView.setImageResource(mConfig.displayConfig.failedResId);
-                }
-
-                if (listener != null) {
-                    listener.onComplete(imageView, response, uri);
-                }
-            }
-
-            @Override
-            public void onStart() {
-
-            }
-        });
-
-        mImageQueue.addRequest(bitmapRequest);
+        // 将加载图片的操作放到Dispatcher中
+        mDispatcher.execute(new RequestContainer(imageView, uri, config, listener));
     }
 
     /**
