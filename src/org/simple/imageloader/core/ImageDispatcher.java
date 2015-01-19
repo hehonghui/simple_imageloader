@@ -45,6 +45,8 @@ import org.simple.net.base.Request.RequestListener;
 import org.simple.net.core.RequestQueue;
 
 /**
+ * 图片请求分发器
+ * 
  * @author mrsimple
  */
 final class ImageDispatcher {
@@ -95,12 +97,12 @@ final class ImageDispatcher {
 
                 @Override
                 public void run() {
-                    updateImageViewIfNeed(mockStatusCode(bitmap), container, bitmap);
+                    updateImageViewIfNeed(container, bitmap);
                 }
             });
             return;
         }
-        
+
         Schema schema = Schema.getSchema(container.imageUri);
         switch (schema) {
             case URL:
@@ -116,10 +118,6 @@ final class ImageDispatcher {
         }
     }
 
-    private int mockStatusCode(Bitmap bitmap) {
-        return bitmap != null ? 200 : -1;
-    }
-
     /**
      * 从网络上加载
      * 
@@ -131,18 +129,17 @@ final class ImageDispatcher {
             return;
         }
 
-        final String uri = container.imageUri;
         if (container.displayConfig != null) {
             imageView.setImageResource(container.displayConfig.loadingResId);
         }
 
-        BitmapRequest bitmapRequest = new BitmapRequest(uri, new
+        BitmapRequest bitmapRequest = new BitmapRequest(container.imageUri, new
                 RequestListener<Bitmap>() {
                     @Override
                     public void onComplete(int stCode, Bitmap response, String errMsg) {
                         Log.e("", "### 执行网络请求 : stCode : " + stCode + ", response : " +
                                 response);
-                        updateImageViewIfNeed(stCode, container, response);
+                        updateImageViewIfNeed(container, response);
                     }
                 });
 
@@ -157,6 +154,19 @@ final class ImageDispatcher {
      */
     private void getBitmapFromLocal(final RequestContainer container) {
         final String imagePath = Uri.parse(container.imageUri).getPath();
+        final Bitmap bitmap = decodeBitmap(container, imagePath);
+        // 在UI线程更新ImageView
+        mUIHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                updateImageViewIfNeed(container, bitmap);
+            }
+        });
+
+    }
+
+    private Bitmap decodeBitmap(final RequestContainer container, final String imagePath) {
         BitmapDecoder decoder = new BitmapDecoder() {
 
             @Override
@@ -165,31 +175,21 @@ final class ImageDispatcher {
             }
         };
 
-        final Bitmap bitmap = decoder.decodeBitmap(container.getImageViewWidth(),
+        return decoder.decodeBitmap(container.getImageViewWidth(),
                 container.getImageViewHeight());
-        // 在UI线程更新ImageView
-        mUIHandler.post(new Runnable() {
-
-            @Override
-            public void run() {
-                updateImageViewIfNeed(mockStatusCode(bitmap), container, bitmap);
-            }
-        });
-
     }
 
-    private void updateImageViewIfNeed(int stCode, RequestContainer container, Bitmap result) {
+    private void updateImageViewIfNeed(RequestContainer container, Bitmap result) {
         final ImageView imageView = container.getImageView();
         if (!isImageViewShowing(imageView)) {
             return;
         }
 
         final String uri = container.imageUri;
-        if (stCode == 200 && result != null
-                && imageView.getTag().equals(uri)) {
+        if (result != null && imageView.getTag().equals(uri)) {
             imageView.setImageBitmap(result);
             mBitmapCache.put(uri, result);
-        } else if (stCode != 200) {
+        } else {
             if (container.displayConfig != null) {
                 imageView.setImageResource(container.displayConfig.failedResId);
             } else {

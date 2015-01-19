@@ -33,12 +33,12 @@ import android.util.Log;
  * 
  * @author mrsimple
  */
-public class BestCache extends BitmapCache {
+public class DoubleCache extends BitmapCache {
 
     DiskCache mDiskCache;
     MemoryCache mMemoryCache = new MemoryCache();
 
-    public BestCache(Context context) {
+    public DoubleCache(Context context) {
         mDiskCache = DiskCache.getDiskCache(context);
     }
 
