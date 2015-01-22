@@ -33,6 +33,7 @@ import org.simple.imageloader.cache.MemoryCache;
 import org.simple.imageloader.config.DisplayConfig;
 import org.simple.imageloader.config.ImageLoaderConfig;
 import org.simple.net.core.RequestQueue;
+import org.simple.net.core.SimpleNet;
 
 /**
  * @author mrsimple
@@ -47,7 +48,7 @@ public class SimpleImageLoader {
     /**
      * 
      */
-    private RequestQueue mImageQueue = RequestQueue.newRequestQueue();
+    private RequestQueue mImageQueue = SimpleNet.newRequestQueue();
     /**
      * 
      */

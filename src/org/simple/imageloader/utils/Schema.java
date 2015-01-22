@@ -29,6 +29,7 @@ package org.simple.imageloader.utils;
  */
 public enum Schema {
     URL,
+    CACHE,
     FILE;
 
     public static Schema getSchema(String uri) {

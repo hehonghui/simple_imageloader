@@ -59,24 +59,27 @@ final class ImageDispatcher {
      * 主线程消息队列的Handler
      */
     final static Handler mUIHandler = new Handler(Looper.getMainLooper());
+    /**
+     * 启动HandlerThread
+     */
     static {
         HT.start();
     }
 
     // 获取mHt的Looper, 并且构造Handler, 注意的是Looper与ch的是不一样的.
-    Handler mCurrentThreadHandler = new Handler(HT.getLooper());
+    Handler mThreadHandler = new Handler(HT.getLooper());
     /**
-     * 
+     * 网络请求队列,执行图片请求
      */
     RequestQueue mRequestQueue;
     /**
-     * 
+     * 图片缓存
      */
     BitmapCache mBitmapCache;
 
     /**
-     * @param queue
-     * @param cache
+     * @param queue 网络请求队列
+     * @param cache 缓存
      */
     public ImageDispatcher(RequestQueue queue, BitmapCache cache) {
         mRequestQueue = queue;
@@ -84,26 +87,14 @@ final class ImageDispatcher {
     }
 
     /**
-     * @功能描述 : doInBackground后台执行任务
-     * @return
+     * 执行耗时操作
+     * 
+     * @param container
      */
     protected void doInBackground(final RequestContainer container) {
-
-        Log.e("", "#### doInBackground : ");
         // get from cache
         final Bitmap bitmap = mBitmapCache.get(container.imageUri);
-        if (bitmap != null) {
-            mUIHandler.post(new Runnable() {
-
-                @Override
-                public void run() {
-                    updateImageViewIfNeed(container, bitmap);
-                }
-            });
-            return;
-        }
-
-        Schema schema = Schema.getSchema(container.imageUri);
+        Schema schema = bitmap != null ? Schema.CACHE : Schema.getSchema(container.imageUri);
         switch (schema) {
             case URL:
                 fetchBitmapFromUrl(container);
@@ -113,13 +104,17 @@ final class ImageDispatcher {
                 getBitmapFromLocal(container);
                 break;
 
+            case CACHE:
+                deliveryToUIThread(container, bitmap);
+                break;
+
             default:
                 break;
         }
     }
 
     /**
-     * 从网络上加载
+     * 从网络上加载图片
      * 
      * @param container
      */
@@ -154,8 +149,18 @@ final class ImageDispatcher {
      */
     private void getBitmapFromLocal(final RequestContainer container) {
         final String imagePath = Uri.parse(container.imageUri).getPath();
-        final Bitmap bitmap = decodeBitmap(container, imagePath);
         // 在UI线程更新ImageView
+        deliveryToUIThread(container, decodeBitmap(container, imagePath));
+
+    }
+
+    /**
+     * 将结果投递到UI,更新ImageView
+     * 
+     * @param container
+     * @param bitmap
+     */
+    private void deliveryToUIThread(final RequestContainer container, final Bitmap bitmap) {
         mUIHandler.post(new Runnable() {
 
             @Override
@@ -163,9 +168,15 @@ final class ImageDispatcher {
                 updateImageViewIfNeed(container, bitmap);
             }
         });
-
     }
 
+    /**
+     * 解析Bitmap
+     * 
+     * @param container
+     * @param imagePath
+     * @return
+     */
     private Bitmap decodeBitmap(final RequestContainer container, final String imagePath) {
         BitmapDecoder decoder = new BitmapDecoder() {
 
@@ -179,6 +190,12 @@ final class ImageDispatcher {
                 container.getImageViewHeight());
     }
 
+    /**
+     * 更新ImageView
+     * 
+     * @param container
+     * @param result
+     */
     private void updateImageViewIfNeed(RequestContainer container, Bitmap result) {
         final ImageView imageView = container.getImageView();
         if (!isImageViewShowing(imageView)) {
@@ -214,7 +231,7 @@ final class ImageDispatcher {
      * @return
      */
     public final ImageDispatcher execute(final RequestContainer requestContainer) {
-        mCurrentThreadHandler.post(new Runnable() {
+        mThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 // 后台执行任务,并且将结果投递投UI线程中
