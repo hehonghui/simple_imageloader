@@ -26,8 +26,8 @@ package org.simple.imageloader.config;
 
 import org.simple.imageloader.cache.BitmapCache;
 import org.simple.imageloader.cache.MemoryCache;
-import org.simple.imageloader.policy.LoadPolicy;
 import org.simple.imageloader.policy.FIFOPolicy;
+import org.simple.imageloader.policy.LoadPolicy;
 
 /**
  * @author mrsimple

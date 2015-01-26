@@ -92,6 +92,8 @@ final class ImageDispatcher {
      * @param container
      */
     protected void doInBackground(final RequestContainer container) {
+        
+        Log.e("", "#### 图片加载 ----->  : " + container.imageUri) ;
         // get from cache
         final Bitmap bitmap = mBitmapCache.get(container.imageUri);
         Schema schema = bitmap != null ? Schema.CACHE : Schema.getSchema(container.imageUri);

@@ -24,19 +24,26 @@
 
 package org.simple.imageloader.policy;
 
-import org.simple.imageloader.request.BitmapRequest;
+import android.graphics.Bitmap;
+
+import org.simple.net.base.Request;
+import org.simple.net.base.Request.Priority;
 
 /**
- * 后进先出策略
+ * 后进先出策略,即从最后加入队列的请求进行加载
  * 
  * @author mrsimple
  */
 public class LIFOPolicy implements LoadPolicy {
 
     @Override
-    public int compare(BitmapRequest request1, BitmapRequest request2) {
-        // TODO Auto-generated method stub
-        return 0;
+    public int compare(Request<Bitmap> request1, Request<Bitmap> request2) {
+        Priority myPriority = request1.getPriority();
+        Priority anotherPriority = request2.getPriority();
+        // 注意Bitmap请求要先执行最晚加入队列的请求,ImageLoader的策略
+        return myPriority.equals(anotherPriority)
+                ? request2.getSerialNumber() - request1.getSerialNumber()
+                : myPriority.ordinal() - anotherPriority.ordinal();
     }
 
 }

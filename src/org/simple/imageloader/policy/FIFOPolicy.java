@@ -24,7 +24,10 @@
 
 package org.simple.imageloader.policy;
 
-import org.simple.imageloader.request.BitmapRequest;
+import android.graphics.Bitmap;
+
+import org.simple.net.base.Request;
+import org.simple.net.base.Request.Priority;
 
 /**
  * 先进先出策略
@@ -34,9 +37,13 @@ import org.simple.imageloader.request.BitmapRequest;
 public class FIFOPolicy implements LoadPolicy {
 
     @Override
-    public int compare(BitmapRequest request1, BitmapRequest request2) {
-        // TODO Auto-generated method stub
-        return 0;
+    public int compare(Request<Bitmap> request1, Request<Bitmap> request2) {
+        Priority myPriority = request1.getPriority();
+        Priority anotherPriority = request2.getPriority();
+        // 如果优先级相等,那么按照添加到队列的序列号顺序来执行
+        return myPriority.equals(anotherPriority) ? request1.getSerialNumber()
+                - request2.getSerialNumber()
+                : myPriority.ordinal() - anotherPriority.ordinal();
     }
 
 }

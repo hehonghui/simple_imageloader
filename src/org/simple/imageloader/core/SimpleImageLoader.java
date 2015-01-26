@@ -57,7 +57,7 @@ public class SimpleImageLoader {
     /**
      * 
      */
-    private ImageLoaderConfig mConfig = new ImageLoaderConfig();
+    private ImageLoaderConfig mConfig;
 
     /**
      * 
@@ -84,6 +84,10 @@ public class SimpleImageLoader {
         mConfig = config;
         mCache = mConfig.bitmapCache;
         mDispatcher = new ImageDispatcher(mImageQueue, mCache);
+    }
+
+    public ImageLoaderConfig getConfig() {
+        return mConfig;
     }
 
     public void displayImage(ImageView imageView, String uri) {

@@ -27,6 +27,7 @@ package org.simple.imageloader.request;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import org.simple.imageloader.core.SimpleImageLoader;
 import org.simple.net.base.Request;
 import org.simple.net.base.Response;
 
@@ -50,11 +51,7 @@ public class BitmapRequest extends Request<Bitmap> {
 
     @Override
     public int compareTo(Request<Bitmap> another) {
-        Priority myPriority = this.getPriority();
-        Priority anotherPriority = another.getPriority();
-        // 注意Bitmap请求要先执行最晚加入队列的请求,ImageLoader的策略
-        return myPriority.equals(another) ? another.getSerialNumber() - this.getSerialNumber()
-                : myPriority.ordinal() - anotherPriority.ordinal();
+        return SimpleImageLoader.getInstance().getConfig().loadPolicy.compare(this, another);
     }
 
 }
