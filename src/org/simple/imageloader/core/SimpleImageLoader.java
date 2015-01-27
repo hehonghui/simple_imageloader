@@ -159,7 +159,6 @@ public final class SimpleImageLoader {
      * @param bean
      */
     protected void doInBackground(final RequestBean bean) {
-
         Log.e("", "#### 图片加载 ----->  : " + bean.imageUri);
         bean.displayConfig = bean.displayConfig != null ? bean.displayConfig
                 : mConfig.displayConfig;
@@ -205,19 +204,13 @@ public final class SimpleImageLoader {
                     imageView.setImageResource(bean.displayConfig.loadingResId);
                 }
             });
-
         }
 
         BitmapRequest bitmapRequest = new BitmapRequest(bean.imageUri, new
                 RequestListener<Bitmap>() {
                     @Override
                     public void onComplete(int stCode, Bitmap response, String errMsg) {
-                        if (stCode == 200) {
-                            updateImageViewIfNeed(bean, Schema.URL, response);
-                        } else if (hasFaildPlaceholder(bean.displayConfig)) {
-                            imageView.setImageResource(bean.displayConfig.failedResId);
-                        }
-
+                        updateImageViewIfNeed(bean, Schema.URL, response);
                     }
                 });
 
@@ -231,8 +224,9 @@ public final class SimpleImageLoader {
      */
     private void getBitmapFromLocal(final RequestBean bean) {
         final String imagePath = Uri.parse(bean.imageUri).getPath();
+        final Bitmap bitmap = decodeBitmap(bean, imagePath);
         // 在UI线程更新ImageView
-        deliveryToUIThread(bean, Schema.FILE, decodeBitmap(bean, imagePath));
+        deliveryToUIThread(bean, Schema.FILE, bitmap);
     }
 
     /**
