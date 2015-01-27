@@ -139,15 +139,13 @@ public class DiskCache extends BitmapCache {
     }
 
     @Override
-    public synchronized Bitmap get(RequestBean bean) {
-
-        final String md5 = Md5Helper.toMD5(bean.imageUri);
+    public synchronized Bitmap get(final RequestBean bean) {
         // 图片解析器
         BitmapDecoder decoder = new BitmapDecoder() {
 
             @Override
             public Bitmap decodeBitmapWithOption(Options options) {
-                final InputStream inputStream = getInputStream(md5);
+                final InputStream inputStream = getInputStream(bean.imageUriMd5);
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null,
                         options);
                 Util.closeQuietly(inputStream);
@@ -186,7 +184,7 @@ public class DiskCache extends BitmapCache {
         DiskLruCache.Editor editor = null;
         try {
             // 如果没有找到对应的缓存，则准备从网络上请求数据，并写入缓存
-            editor = mDiskLruCache.edit(Md5Helper.toMD5(key.imageUri));
+            editor = mDiskLruCache.edit(key.imageUriMd5);
             if (editor != null) {
                 OutputStream outputStream = editor.newOutputStream(0);
                 if (writeBitmapToDisk(value, outputStream)) {
@@ -205,22 +203,24 @@ public class DiskCache extends BitmapCache {
     private boolean writeBitmapToDisk(Bitmap bitmap, OutputStream outputStream) {
         BufferedOutputStream bos = new BufferedOutputStream(outputStream, 8 * 1024);
         bitmap.compress(CompressFormat.JPEG, 100, bos);
+        boolean result = true;
         try {
             bos.flush();
-            return true;
         } catch (IOException e) {
             e.printStackTrace();
+            result = false;
         } finally {
             Util.closeQuietly(bos);
         }
 
-        return false;
+        return result;
     }
 
     @Override
     public void remove(RequestBean key) {
         try {
-            mDiskLruCache.remove(Md5Helper.toMD5(key.imageUri));
+            // mDiskLruCache.remove(Md5Helper.toMD5(key.imageUri));
+            mDiskLruCache.remove(Md5Helper.toMD5(key.imageUriMd5));
         } catch (IOException e) {
             e.printStackTrace();
         }

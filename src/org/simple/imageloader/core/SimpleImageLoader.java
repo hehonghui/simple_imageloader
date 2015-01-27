@@ -97,6 +97,8 @@ public final class SimpleImageLoader {
     }
 
     /**
+     * 获取ImageLoader单例
+     * 
      * @return
      */
     public static SimpleImageLoader getInstance() {
@@ -209,7 +211,6 @@ public final class SimpleImageLoader {
         }
 
         if (hasLoadingPlaceholder(bean.displayConfig)) {
-            Log.e("", "### loading res : " + bean.displayConfig.loadingResId);
             mUIHandler.post(new Runnable() {
 
                 @Override
@@ -241,7 +242,7 @@ public final class SimpleImageLoader {
      */
     private void getBitmapFromLocal(final RequestBean bean) {
         final String imagePath = Uri.parse(bean.imageUri).getPath();
-        final Bitmap bitmap = decodeBitmap(bean, imagePath);
+        final Bitmap bitmap = decodeBitmapFromPath(bean, imagePath);
         // 缓存新的图片
         if (bitmap != null) {
             saveInCache(bean, bitmap);
@@ -267,13 +268,13 @@ public final class SimpleImageLoader {
     }
 
     /**
-     * 解析Bitmap
+     * 从本地路径中解析Bitmap
      * 
      * @param bean
      * @param imagePath
      * @return
      */
-    private Bitmap decodeBitmap(final RequestBean bean, final String imagePath) {
+    private Bitmap decodeBitmapFromPath(final RequestBean bean, final String imagePath) {
         final File imgFile = new File(imagePath);
         if (!imgFile.exists()) {
             return null;

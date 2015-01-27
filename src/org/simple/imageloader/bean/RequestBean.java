@@ -30,6 +30,7 @@ import android.widget.ImageView;
 
 import org.simple.imageloader.config.DisplayConfig;
 import org.simple.imageloader.core.SimpleImageLoader.ImageListener;
+import org.simple.imageloader.utils.Md5Helper;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -43,6 +44,7 @@ public class RequestBean {
     public DisplayConfig displayConfig;
     public ImageListener imageListener;
     public String imageUri = "";
+    public String imageUriMd5 = "";
 
     public RequestBean(ImageView imageView, String uri, DisplayConfig config,
             ImageListener listener) {
@@ -51,6 +53,7 @@ public class RequestBean {
         imageListener = listener;
         imageUri = uri;
         imageView.setTag(uri);
+        imageUriMd5 = Md5Helper.toMD5(imageUri) ;
     }
 
     public ImageView getImageView() {
@@ -76,12 +79,12 @@ public class RequestBean {
             if (params != null && params.width != ViewGroup.LayoutParams.WRAP_CONTENT) {
                 width = imageView.getWidth(); // Get actual image width
             }
-            if (width <= 0 && params != null)
+            if (width <= 0 && params != null) {
                 width = params.width; // Get layout width parameter
-            if (width <= 0)
-                width = getImageViewFieldValue(imageView, "mMaxWidth"); // Check
-                                                                        // maxWidth
-                                                                        // parameter
+            }
+            if (width <= 0) {
+                width = getImageViewFieldValue(imageView, "mMaxWidth");
+            }
             return width;
         }
         return 0;
@@ -108,12 +111,13 @@ public class RequestBean {
                     && params.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
                 height = imageView.getHeight(); // Get actual image height
             }
-            if (height <= 0 && params != null)
-                height = params.height; // Get layout height parameter
-            if (height <= 0)
-                height = getImageViewFieldValue(imageView, "mMaxHeight"); // Check
-                                                                          // maxHeight
-                                                                          // parameter
+            if (height <= 0 && params != null) {
+                // Get layout height parameter
+                height = params.height;
+            }
+            if (height <= 0) {
+                height = getImageViewFieldValue(imageView, "mMaxHeight");
+            }
             return height;
         }
         return 0;
