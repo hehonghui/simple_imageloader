@@ -46,6 +46,8 @@ import org.simple.net.base.Request.RequestListener;
 import org.simple.net.core.RequestQueue;
 import org.simple.net.core.SimpleNet;
 
+import java.io.File;
+
 /**
  * 图片加载类
  * 
@@ -56,9 +58,9 @@ public final class SimpleImageLoader {
     /**
      * HandlerThread内部封装了自己的Handler和Thead，有单独的Looper和消息队列
      */
-    private static final HandlerThread sHandlerThread = new HandlerThread(
+    private static final HandlerThread sThread = new HandlerThread(
             SimpleImageLoader.class.getName(),
-            android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            android.os.Process.THREAD_PRIORITY_DEFAULT);
     /**
      * 获取mHt的Looper, 并且构造Handler, 注意的是Looper与ch的是不一样的.
      */
@@ -103,9 +105,9 @@ public final class SimpleImageLoader {
                 if (sInstance == null) {
                     sInstance = new SimpleImageLoader();
                     // 启动HandlerThread
-                    sHandlerThread.start();
+                    sThread.start();
                     // 获取到HandlerThread的消息队列
-                    sThreadHandler = new Handler(sHandlerThread.getLooper());
+                    sThreadHandler = new Handler(sThread.getLooper());
                 }
             }
         }
@@ -225,6 +227,8 @@ public final class SimpleImageLoader {
     private void getBitmapFromLocal(final RequestBean bean) {
         final String imagePath = Uri.parse(bean.imageUri).getPath();
         final Bitmap bitmap = decodeBitmap(bean, imagePath);
+
+        Log.e("", "### thread name = " + Thread.currentThread().getName());
         // 在UI线程更新ImageView
         deliveryToUIThread(bean, Schema.FILE, bitmap);
     }
@@ -253,6 +257,11 @@ public final class SimpleImageLoader {
      * @return
      */
     private Bitmap decodeBitmap(final RequestBean bean, final String imagePath) {
+        final File imgFile = new File(imagePath);
+        if (!imgFile.exists()) {
+            return null;
+        }
+
         BitmapDecoder decoder = new BitmapDecoder() {
 
             @Override

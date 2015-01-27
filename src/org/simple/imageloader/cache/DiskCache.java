@@ -33,7 +33,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.jakewharton.disklrucache.DiskLruCache;
 import com.jakewharton.disklrucache.DiskLruCache.Snapshot;
@@ -96,19 +95,12 @@ public class DiskCache extends BitmapCache {
             if (!cacheDir.exists()) {
                 cacheDir.mkdirs();
             }
-
-            Toast.makeText(context, "init ", Toast.LENGTH_SHORT).show();
-
-            DiskCache.cacheDir = cacheDir.getAbsolutePath();
-            Log.d("", "### 缓存路径  :" + cacheDir);
             mDiskLruCache = DiskLruCache
                     .open(cacheDir, getAppVersion(context), 1, 50 * MB);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-    static String cacheDir = "";
 
     /**
      * @param context
@@ -142,23 +134,58 @@ public class DiskCache extends BitmapCache {
     }
 
     @Override
-    public synchronized Bitmap get(RequestBean container) {
+    public synchronized Bitmap get(RequestBean bean) {
 
-        final String md5 = Md5Helper.toMD5(container.imageUri);
+        final String md5 = Md5Helper.toMD5(bean.imageUri);
         // 图片解析器
         BitmapDecoder decoder = new BitmapDecoder() {
 
             @Override
             public Bitmap decodeBitmapWithOption(Options options) {
                 final InputStream inputStream = getInputStream(md5);
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null,
+                        options);
                 Util.closeQuietly(inputStream);
                 return bitmap;
             }
         };
 
-        return decoder.decodeBitmap(container.getImageViewWidth(),
-                container.getImageViewHeight());
+        // final String md5 = Md5Helper.toMD5(bean.imageUri);
+        // // 包装InputStream
+        // final InputStream inputStream = new
+        // BufferedInputStream(getInputStream(md5));
+        // try {
+        // inputStream.mark(inputStream.available());
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
+        //
+        // // 图片解析器
+        // BitmapDecoder decoder = new BitmapDecoder() {
+        //
+        // @Override
+        // public Bitmap decodeBitmapWithOption(Options options) {
+        // Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null,
+        // options);
+        // Log.e("", "### decodeBitmapWithOption = " + md5 +
+        // ", inJustDecodeBounds = "
+        // + options.inJustDecodeBounds);
+        // if (options.inJustDecodeBounds) {
+        // try {
+        // Log.e("", "###  reset");
+        // inputStream.reset();
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
+        // } else {
+        // Util.closeQuietly(inputStream);
+        // }
+        // return bitmap;
+        // }
+        // };
+
+        return decoder.decodeBitmap(bean.getImageViewWidth(),
+                bean.getImageViewHeight());
 
     }
 
