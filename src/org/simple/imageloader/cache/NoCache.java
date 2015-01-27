@@ -26,20 +26,27 @@ package org.simple.imageloader.cache;
 
 import android.graphics.Bitmap;
 
+import org.simple.imageloader.bean.RequestBean;
+
+/**
+ * 没有缓存
+ * 
+ * @author mrsimple
+ */
 public class NoCache extends BitmapCache {
 
     @Override
-    public Bitmap get(String key) {
+    public Bitmap get(RequestBean key) {
         return null;
     }
 
     @Override
-    public void put(String key, Bitmap value) {
+    public void put(RequestBean key, Bitmap value) {
 
     }
 
     @Override
-    public void remove(String key) {
+    public void remove(RequestBean key) {
 
     }
 

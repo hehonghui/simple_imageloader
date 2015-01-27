@@ -27,8 +27,6 @@ package org.simple.imageloader.core;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -36,7 +34,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.ImageView;
 
-import org.simple.imageloader.bean.RequestContainer;
+import org.simple.imageloader.bean.RequestBean;
 import org.simple.imageloader.cache.BitmapCache;
 import org.simple.imageloader.request.BitmapRequest;
 import org.simple.imageloader.utils.BitmapDecoder;
@@ -89,25 +87,25 @@ final class ImageDispatcher {
     /**
      * 执行耗时操作
      * 
-     * @param container
+     * @param bean
      */
-    protected void doInBackground(final RequestContainer container) {
-        
-        Log.e("", "#### 图片加载 ----->  : " + container.imageUri) ;
+    protected void doInBackground(final RequestBean bean) {
+
+        Log.e("", "#### 图片加载 ----->  : " + bean.imageUri);
         // get from cache
-        final Bitmap bitmap = mBitmapCache.get(container.imageUri);
-        Schema schema = bitmap != null ? Schema.CACHE : Schema.getSchema(container.imageUri);
+        final Bitmap bitmap = mBitmapCache.get(bean);
+        Schema schema = bitmap != null ? Schema.CACHE : Schema.getSchema(bean.imageUri);
         switch (schema) {
             case URL:
-                fetchBitmapFromUrl(container);
+                fetchBitmapFromUrl(bean);
                 break;
 
             case FILE:
-                getBitmapFromLocal(container);
+                getBitmapFromLocal(bean);
                 break;
 
             case CACHE:
-                deliveryToUIThread(container, bitmap);
+                deliveryToUIThread(bean, bitmap);
                 break;
 
             default:
@@ -118,25 +116,25 @@ final class ImageDispatcher {
     /**
      * 从网络上加载图片
      * 
-     * @param container
+     * @param bean
      */
-    private void fetchBitmapFromUrl(final RequestContainer container) {
-        final ImageView imageView = container.getImageView();
+    private void fetchBitmapFromUrl(final RequestBean bean) {
+        final ImageView imageView = bean.getImageView();
         if (!isImageViewShowing(imageView)) {
             return;
         }
 
-        if (container.displayConfig != null) {
-            imageView.setImageResource(container.displayConfig.loadingResId);
+        if (bean.displayConfig != null) {
+            imageView.setImageResource(bean.displayConfig.loadingResId);
         }
 
-        BitmapRequest bitmapRequest = new BitmapRequest(container.imageUri, new
+        BitmapRequest bitmapRequest = new BitmapRequest(bean.imageUri, new
                 RequestListener<Bitmap>() {
                     @Override
                     public void onComplete(int stCode, Bitmap response, String errMsg) {
                         Log.e("", "### 执行网络请求 : stCode : " + stCode + ", response : " +
                                 response);
-                        updateImageViewIfNeed(container, response);
+                        updateImageViewIfNeed(bean, response);
                     }
                 });
 
@@ -147,27 +145,26 @@ final class ImageDispatcher {
     /**
      * 从本地加载图片
      * 
-     * @param container
+     * @param bean
      */
-    private void getBitmapFromLocal(final RequestContainer container) {
-        final String imagePath = Uri.parse(container.imageUri).getPath();
+    private void getBitmapFromLocal(final RequestBean bean) {
+        final String imagePath = Uri.parse(bean.imageUri).getPath();
         // 在UI线程更新ImageView
-        deliveryToUIThread(container, decodeBitmap(container, imagePath));
-
+        deliveryToUIThread(bean, decodeBitmap(bean, imagePath));
     }
 
     /**
      * 将结果投递到UI,更新ImageView
      * 
-     * @param container
+     * @param bean
      * @param bitmap
      */
-    private void deliveryToUIThread(final RequestContainer container, final Bitmap bitmap) {
+    private void deliveryToUIThread(final RequestBean bean, final Bitmap bitmap) {
         mUIHandler.post(new Runnable() {
 
             @Override
             public void run() {
-                updateImageViewIfNeed(container, bitmap);
+                updateImageViewIfNeed(bean, bitmap);
             }
         });
     }
@@ -175,11 +172,11 @@ final class ImageDispatcher {
     /**
      * 解析Bitmap
      * 
-     * @param container
+     * @param bean
      * @param imagePath
      * @return
      */
-    private Bitmap decodeBitmap(final RequestContainer container, final String imagePath) {
+    private Bitmap decodeBitmap(final RequestBean bean, final String imagePath) {
         BitmapDecoder decoder = new BitmapDecoder() {
 
             @Override
@@ -188,38 +185,31 @@ final class ImageDispatcher {
             }
         };
 
-        return decoder.decodeBitmap(container.getImageViewWidth(),
-                container.getImageViewHeight());
+        return decoder.decodeBitmap(bean.getImageViewWidth(),
+                bean.getImageViewHeight());
     }
 
     /**
      * 更新ImageView
      * 
-     * @param container
+     * @param bean
      * @param result
      */
-    private void updateImageViewIfNeed(RequestContainer container, Bitmap result) {
-        final ImageView imageView = container.getImageView();
+    private void updateImageViewIfNeed(RequestBean bean, Bitmap result) {
+        final ImageView imageView = bean.getImageView();
         if (!isImageViewShowing(imageView)) {
             return;
         }
 
-        final String uri = container.imageUri;
+        final String uri = bean.imageUri;
         if (result != null && imageView.getTag().equals(uri)) {
             imageView.setImageBitmap(result);
-            mBitmapCache.put(uri, result);
-        } else {
-            if (container.displayConfig != null) {
-                imageView.setImageResource(container.displayConfig.failedResId);
-            } else {
-                imageView.setImageDrawable(new ColorDrawable(Color.LTGRAY));
-            }
-
+            mBitmapCache.put(bean, result);
         }
 
         // 回调接口
-        if (container.imageListener != null) {
-            container.imageListener.onComplete(imageView, result, uri);
+        if (bean.imageListener != null) {
+            bean.imageListener.onComplete(imageView, result, uri);
         }
     }
 
@@ -232,16 +222,14 @@ final class ImageDispatcher {
      * 
      * @return
      */
-    public final ImageDispatcher execute(final RequestContainer requestContainer) {
+    public final void execute(final RequestBean bean) {
         mThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 // 后台执行任务,并且将结果投递投UI线程中
-                doInBackground(requestContainer);
+                doInBackground(bean);
             }
         });
-
-        return this;
     }
 
 }

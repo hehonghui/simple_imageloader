@@ -27,6 +27,8 @@ package org.simple.imageloader.cache;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 
+import org.simple.imageloader.bean.RequestBean;
+
 /**
  * 图片的内存缓存,key为图片的uri,值为图片本身
  * 
@@ -34,7 +36,7 @@ import android.support.v4.util.LruCache;
  */
 public class MemoryCache extends BitmapCache {
 
-    private LruCache<String, Bitmap> mMemeryCache;
+    private LruCache<RequestBean, Bitmap> mMemeryCache;
 
     public MemoryCache() {
 
@@ -43,10 +45,10 @@ public class MemoryCache extends BitmapCache {
 
         // 取4分之一的可用内存作为缓存
         final int cacheSize = maxMemory / 4;
-        mMemeryCache = new LruCache<String, Bitmap>(cacheSize) {
+        mMemeryCache = new LruCache<RequestBean, Bitmap>(cacheSize) {
 
             @Override
-            protected int sizeOf(String key, Bitmap bitmap) {
+            protected int sizeOf(RequestBean key, Bitmap bitmap) {
                 return bitmap.getRowBytes() * bitmap.getHeight() / 1024;
             }
         };
@@ -54,17 +56,17 @@ public class MemoryCache extends BitmapCache {
     }
 
     @Override
-    public Bitmap get(String key) {
+    public Bitmap get(RequestBean key) {
         return mMemeryCache.get(key);
     }
 
     @Override
-    public void put(String key, Bitmap value) {
+    public void put(RequestBean key, Bitmap value) {
         mMemeryCache.put(key, value);
     }
 
     @Override
-    public void remove(String key) {
+    public void remove(RequestBean key) {
         mMemeryCache.remove(key);
     }
 

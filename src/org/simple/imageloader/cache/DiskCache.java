@@ -39,6 +39,7 @@ import com.jakewharton.disklrucache.DiskLruCache;
 import com.jakewharton.disklrucache.DiskLruCache.Snapshot;
 import com.jakewharton.disklrucache.Util;
 
+import org.simple.imageloader.bean.RequestBean;
 import org.simple.imageloader.utils.BitmapDecoder;
 import org.simple.imageloader.utils.Md5Helper;
 
@@ -141,21 +142,24 @@ public class DiskCache extends BitmapCache {
     }
 
     @Override
-    public synchronized Bitmap get(String key) {
+    public synchronized Bitmap get(RequestBean container) {
 
-        final String md5 = Md5Helper.toMD5(key);
+        final String md5 = Md5Helper.toMD5(container.imageUri);
+        // 图片解析器
         BitmapDecoder decoder = new BitmapDecoder() {
 
             @Override
             public Bitmap decodeBitmapWithOption(Options options) {
-                InputStream inputStream = getInputStream(md5);
+                final InputStream inputStream = getInputStream(md5);
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
                 Util.closeQuietly(inputStream);
                 return bitmap;
             }
         };
 
-        return decoder.decodeBitmap(1000, 1000);
+        return decoder.decodeBitmap(container.getImageViewWidth(),
+                container.getImageViewHeight());
+
     }
 
     private InputStream getInputStream(String md5) {
@@ -172,11 +176,11 @@ public class DiskCache extends BitmapCache {
     }
 
     @Override
-    public void put(String key, Bitmap value) {
+    public void put(RequestBean key, Bitmap value) {
         DiskLruCache.Editor editor = null;
         try {
             // 如果没有找到对应的缓存，则准备从网络上请求数据，并写入缓存
-            editor = mDiskLruCache.edit(Md5Helper.toMD5(key));
+            editor = mDiskLruCache.edit(Md5Helper.toMD5(key.imageUri));
             if (editor != null) {
                 OutputStream outputStream = editor.newOutputStream(0);
                 if (writeBitmapToDisk(value, outputStream)) {
@@ -209,9 +213,9 @@ public class DiskCache extends BitmapCache {
     }
 
     @Override
-    public void remove(String key) {
+    public void remove(RequestBean key) {
         try {
-            mDiskLruCache.remove(Md5Helper.toMD5(key));
+            mDiskLruCache.remove(Md5Helper.toMD5(key.imageUri));
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -28,6 +28,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import org.simple.imageloader.bean.RequestBean;
+
 /**
  * 综合缓存
  * 
@@ -43,11 +45,11 @@ public class DoubleCache extends BitmapCache {
     }
 
     @Override
-    public Bitmap get(String key) {
+    public Bitmap get(RequestBean key) {
         Bitmap value = mMemoryCache.get(key);
         if (value == null) {
             value = mDiskCache.get(key);
-            Log.d(key, "### sd缓存 key : " + key + ", value = " + value);
+            Log.d("", "### sd缓存 key : " + key + ", value = " + value);
             saveBitmapIntoMemory(key, value);
         } else {
             Log.e("", "### 有内存缓存 : " + key);
@@ -55,7 +57,7 @@ public class DoubleCache extends BitmapCache {
         return value;
     }
 
-    private void saveBitmapIntoMemory(String key, Bitmap bitmap) {
+    private void saveBitmapIntoMemory(RequestBean key, Bitmap bitmap) {
         // 如果Value从disk中读取,那么存入内存缓存
         if (bitmap != null) {
             mMemoryCache.put(key, bitmap);
@@ -63,13 +65,13 @@ public class DoubleCache extends BitmapCache {
     }
 
     @Override
-    public void put(String key, Bitmap value) {
+    public void put(RequestBean key, Bitmap value) {
         mDiskCache.put(key, value);
         mMemoryCache.put(key, value);
     }
 
     @Override
-    public void remove(String key) {
+    public void remove(RequestBean key) {
         mDiskCache.remove(key);
         mMemoryCache.remove(key);
     }

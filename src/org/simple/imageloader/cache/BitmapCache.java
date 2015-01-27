@@ -26,11 +26,12 @@ package org.simple.imageloader.cache;
 
 import android.graphics.Bitmap;
 
+import org.simple.imageloader.bean.RequestBean;
 import org.simple.net.cache.Cache;
 
 /**
  * @author mrsimple
  */
-public abstract class BitmapCache implements Cache<String, Bitmap> {
+public abstract class BitmapCache implements Cache<RequestBean, Bitmap> {
 
 }

@@ -27,7 +27,7 @@ package org.simple.imageloader.core;
 import android.graphics.Bitmap;
 import android.widget.ImageView;
 
-import org.simple.imageloader.bean.RequestContainer;
+import org.simple.imageloader.bean.RequestBean;
 import org.simple.imageloader.cache.BitmapCache;
 import org.simple.imageloader.cache.MemoryCache;
 import org.simple.imageloader.config.DisplayConfig;
@@ -38,7 +38,7 @@ import org.simple.net.core.SimpleNet;
 /**
  * @author mrsimple
  */
-public class SimpleImageLoader {
+public final class SimpleImageLoader {
 
     /**
      * 
@@ -104,12 +104,13 @@ public class SimpleImageLoader {
 
     public void displayImage(final ImageView imageView, final String uri,
             final DisplayConfig config, final ImageListener listener) {
-
         // 将加载图片的操作放到Dispatcher中
-        mDispatcher.execute(new RequestContainer(imageView, uri, config, listener));
+        mDispatcher.execute(new RequestBean(imageView, uri, config, listener));
     }
 
     /**
+     * 图片加载Listener
+     * 
      * @author mrsimple
      */
     public static interface ImageListener {

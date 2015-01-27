@@ -38,13 +38,13 @@ import java.lang.reflect.Field;
 /**
  * @author mrsimple
  */
-public class RequestContainer {
+public class RequestBean {
     Reference<ImageView> mImageViewRef;
     public DisplayConfig displayConfig;
     public ImageListener imageListener;
     public String imageUri = "";
 
-    public RequestContainer(ImageView imageView, String uri, DisplayConfig config,
+    public RequestBean(ImageView imageView, String uri, DisplayConfig config,
             ImageListener listener) {
         mImageViewRef = new WeakReference<ImageView>(imageView);
         displayConfig = config;
