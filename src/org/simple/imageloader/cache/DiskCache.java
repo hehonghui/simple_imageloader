@@ -64,9 +64,9 @@ public class DiskCache extends BitmapCache {
      */
     private static final String IMAGE_DISK_CACHE = "bitmap";
 
-    DiskLruCache mDiskLruCache;
+    private DiskLruCache mDiskLruCache;
 
-    static DiskCache mDiskCache;
+    private static DiskCache mDiskCache;
 
     /**
      * @param context
@@ -199,7 +199,7 @@ public class DiskCache extends BitmapCache {
 
     private boolean writeBitmapToDisk(Bitmap bitmap, OutputStream outputStream) {
         BufferedOutputStream bos = new BufferedOutputStream(outputStream, 8 * 1024);
-        bitmap.compress(CompressFormat.JPEG, 90, bos);
+        bitmap.compress(CompressFormat.JPEG, 100, bos);
         try {
             bos.flush();
             return true;

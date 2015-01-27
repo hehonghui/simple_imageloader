@@ -25,9 +25,11 @@
 package org.simple.imageloader.config;
 
 /**
+ * 加载图片时的loading资源以及加载失败的图片
+ * 
  * @author mrsimple
  */
 public class DisplayConfig {
-    public int loadingResId;
-    public int failedResId;
+    public int loadingResId = -1;
+    public int failedResId = -1;
 }
