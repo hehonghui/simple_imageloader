@@ -41,6 +41,7 @@ import com.jakewharton.disklrucache.Util;
 import org.simple.imageloader.bean.RequestBean;
 import org.simple.imageloader.utils.BitmapDecoder;
 import org.simple.imageloader.utils.Md5Helper;
+import org.simple.imageloader.utils.Schema;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -59,12 +60,16 @@ public class DiskCache extends BitmapCache {
     private static final int MB = 1024 * 1024;
 
     /**
-     * 
+     * cache dir
      */
     private static final String IMAGE_DISK_CACHE = "bitmap";
-
+    /**
+     * Disk LRU Cache
+     */
     private DiskLruCache mDiskLruCache;
-
+    /**
+     * Disk Cache Instance
+     */
     private static DiskCache mDiskCache;
 
     /**
@@ -150,40 +155,6 @@ public class DiskCache extends BitmapCache {
             }
         };
 
-        // final String md5 = Md5Helper.toMD5(bean.imageUri);
-        // // 包装InputStream
-        // final InputStream inputStream = new
-        // BufferedInputStream(getInputStream(md5));
-        // try {
-        // inputStream.mark(inputStream.available());
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-        //
-        // // 图片解析器
-        // BitmapDecoder decoder = new BitmapDecoder() {
-        //
-        // @Override
-        // public Bitmap decodeBitmapWithOption(Options options) {
-        // Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null,
-        // options);
-        // Log.e("", "### decodeBitmapWithOption = " + md5 +
-        // ", inJustDecodeBounds = "
-        // + options.inJustDecodeBounds);
-        // if (options.inJustDecodeBounds) {
-        // try {
-        // Log.e("", "###  reset");
-        // inputStream.reset();
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-        // } else {
-        // Util.closeQuietly(inputStream);
-        // }
-        // return bitmap;
-        // }
-        // };
-
         return decoder.decodeBitmap(bean.getImageViewWidth(),
                 bean.getImageViewHeight());
 
@@ -202,8 +173,16 @@ public class DiskCache extends BitmapCache {
         return null;
     }
 
+    /*
+     * sd卡缓存只缓存从网络下下载下来的图片,本地图片则不缓存
+     * @see org.simple.net.cache.Cache#put(java.lang.Object, java.lang.Object)
+     */
     @Override
     public void put(RequestBean key, Bitmap value) {
+        if (Schema.getSchema(key.imageUri) != Schema.URL) {
+            return;
+        }
+
         DiskLruCache.Editor editor = null;
         try {
             // 如果没有找到对应的缓存，则准备从网络上请求数据，并写入缓存
@@ -213,7 +192,6 @@ public class DiskCache extends BitmapCache {
                 if (writeBitmapToDisk(value, outputStream)) {
                     // 写入disk缓存
                     editor.commit();
-                    // mDiskLruCache.flush();
                 } else {
                     editor.abort();
                 }

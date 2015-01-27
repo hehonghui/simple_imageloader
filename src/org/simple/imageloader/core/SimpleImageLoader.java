@@ -29,7 +29,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 import android.net.Uri;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.ImageView;
@@ -37,6 +36,7 @@ import android.widget.ImageView;
 import org.simple.imageloader.bean.RequestBean;
 import org.simple.imageloader.cache.BitmapCache;
 import org.simple.imageloader.cache.MemoryCache;
+import org.simple.imageloader.cache.NoCache;
 import org.simple.imageloader.config.DisplayConfig;
 import org.simple.imageloader.config.ImageLoaderConfig;
 import org.simple.imageloader.request.BitmapRequest;
@@ -47,6 +47,8 @@ import org.simple.net.core.RequestQueue;
 import org.simple.net.core.SimpleNet;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 图片加载类
@@ -54,17 +56,11 @@ import java.io.File;
  * @author mrsimple
  */
 public final class SimpleImageLoader {
-
     /**
-     * HandlerThread内部封装了自己的Handler和Thead，有单独的Looper和消息队列
+     * 
      */
-    private static final HandlerThread sThread = new HandlerThread(
-            SimpleImageLoader.class.getName(),
-            android.os.Process.THREAD_PRIORITY_DEFAULT);
-    /**
-     * 获取mHt的Looper, 并且构造Handler, 注意的是Looper与ch的是不一样的.
-     */
-    private static Handler sThreadHandler;
+    ExecutorService mExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime()
+            .availableProcessors());
 
     /**
      * 主线程消息队列的Handler
@@ -104,10 +100,6 @@ public final class SimpleImageLoader {
             synchronized (SimpleImageLoader.class) {
                 if (sInstance == null) {
                     sInstance = new SimpleImageLoader();
-                    // 启动HandlerThread
-                    sThread.start();
-                    // 获取到HandlerThread的消息队列
-                    sThreadHandler = new Handler(sThread.getLooper());
                 }
             }
         }
@@ -120,6 +112,17 @@ public final class SimpleImageLoader {
     public void init(ImageLoaderConfig config) {
         mConfig = config;
         mCache = mConfig.bitmapCache;
+        checkConfig();
+    }
+
+    private void checkConfig() {
+        if (mConfig == null) {
+            throw new RuntimeException(
+                    "The config of SimpleImageLoader is Null, please call the init(ImageLoaderConfig config) method to initialize");
+        }
+        if (mCache == null) {
+            mCache = new NoCache();
+        }
     }
 
     public void displayImage(ImageView imageView, String uri) {
@@ -146,7 +149,7 @@ public final class SimpleImageLoader {
      * @return
      */
     private final void execute(final RequestBean bean) {
-        sThreadHandler.post(new Runnable() {
+        mExecutorService.execute(new Runnable() {
             @Override
             public void run() {
                 // 后台执行任务,并且将结果投递投UI线程中
@@ -166,8 +169,6 @@ public final class SimpleImageLoader {
                 : mConfig.displayConfig;
         // get from cache
         final Bitmap bitmap = mCache.get(bean);
-        Log.e("", "### 缓存图片 = " + bitmap);
-
         Schema schema = bitmap != null ? Schema.CACHE : Schema.getSchema(bean.imageUri);
         switch (schema) {
             case URL:
@@ -213,6 +214,10 @@ public final class SimpleImageLoader {
                     @Override
                     public void onComplete(int stCode, Bitmap response, String errMsg) {
                         updateImageViewIfNeed(bean, Schema.URL, response);
+                        // 缓存新的图片
+                        if (response != null) {
+                            saveInCache(bean, response);
+                        }
                     }
                 });
 
@@ -227,6 +232,10 @@ public final class SimpleImageLoader {
     private void getBitmapFromLocal(final RequestBean bean) {
         final String imagePath = Uri.parse(bean.imageUri).getPath();
         final Bitmap bitmap = decodeBitmap(bean, imagePath);
+        // 缓存新的图片
+        if (bitmap != null) {
+            saveInCache(bean, bitmap);
+        }
 
         Log.e("", "### thread name = " + Thread.currentThread().getName());
         // 在UI线程更新ImageView
@@ -289,9 +298,6 @@ public final class SimpleImageLoader {
         final String uri = bean.imageUri;
         if (result != null && imageView.getTag().equals(uri)) {
             imageView.setImageBitmap(result);
-            if (schema != Schema.CACHE) {
-                mCache.put(bean, result);
-            }
         }
 
         // 加载失败
@@ -303,6 +309,18 @@ public final class SimpleImageLoader {
         if (bean.imageListener != null) {
             bean.imageListener.onComplete(imageView, result, uri);
         }
+    }
+
+    private void saveInCache(final RequestBean bean, final Bitmap result) {
+        mExecutorService.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                synchronized (mCache) {
+                    mCache.put(bean, result);
+                }
+            }
+        });
     }
 
     private boolean hasLoadingPlaceholder(DisplayConfig displayConfig) {

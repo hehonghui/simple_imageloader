@@ -30,6 +30,9 @@ import android.widget.ImageView;
 
 import org.simple.imageloader.core.SimpleImageLoader;
 
+/**
+ * @author mrsimple
+ */
 public class NetworkImageView extends ImageView {
 
     public NetworkImageView(Context context) {

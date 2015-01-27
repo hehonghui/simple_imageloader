@@ -133,4 +133,30 @@ public class RequestBean {
         }
         return value;
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((imageUri == null) ? 0 : imageUri.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        RequestBean other = (RequestBean) obj;
+        if (imageUri == null) {
+            if (other.imageUri != null)
+                return false;
+        } else if (!imageUri.equals(other.imageUri))
+            return false;
+        return true;
+    }
+
 }

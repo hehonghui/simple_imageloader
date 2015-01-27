@@ -47,9 +47,10 @@ public class DoubleCache extends BitmapCache {
     @Override
     public Bitmap get(RequestBean key) {
         Bitmap value = mMemoryCache.get(key);
+        Log.e("", "### double cache get from mem : " + value);
         if (value == null) {
             value = mDiskCache.get(key);
-            Log.d("", "### sd缓存 key : " + key + ", value = " + value);
+            Log.e("", "### double cache get from disk : " + value);
             saveBitmapIntoMemory(key, value);
         } else {
             Log.e("", "### 有内存缓存 : " + key);
