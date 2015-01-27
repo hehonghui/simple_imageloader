@@ -39,6 +39,7 @@ import org.simple.imageloader.cache.MemoryCache;
 import org.simple.imageloader.cache.NoCache;
 import org.simple.imageloader.config.DisplayConfig;
 import org.simple.imageloader.config.ImageLoaderConfig;
+import org.simple.imageloader.policy.SerialPolicy;
 import org.simple.imageloader.request.BitmapRequest;
 import org.simple.imageloader.utils.BitmapDecoder;
 import org.simple.imageloader.utils.Schema;
@@ -51,13 +52,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 图片加载类
+ * 图片加载类,支持url和本地图片的uri形式加载.根据图片路径格式来判断是网络图片还是本地图片,如果是网络图片则交给SimpleNet框架来加载，
+ * 如果是本地图片那么则交给mExecutorService从sd卡中加载
+ * .加载之后直接更新UI，无需用户干预.如果用户设置了缓存策略,那么会将加载到的图片缓存起来.用户也可以设置加载策略，例如顺序加载{@see
+ * SerialPolicy}和逆向加载{@see ReversePolicy}.
  * 
  * @author mrsimple
  */
 public final class SimpleImageLoader {
     /**
-     * 
+     * 用于加载本地图片的线程池
      */
     ExecutorService mExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime()
             .availableProcessors());
@@ -68,21 +72,21 @@ public final class SimpleImageLoader {
     final static Handler mUIHandler = new Handler(Looper.getMainLooper());
 
     /**
-     * 
+     * SimpleImageLoader实例
      */
     private static SimpleImageLoader sInstance;
 
     /**
-     * 
+     * 网络请求队列
      */
     private RequestQueue mImageQueue = SimpleNet.newRequestQueue();
     /**
-     * 
+     * 缓存
      */
     private volatile BitmapCache mCache = new MemoryCache();
 
     /**
-     * 
+     * 图片加载配置对象
      */
     private ImageLoaderConfig mConfig;
 
@@ -120,9 +124,14 @@ public final class SimpleImageLoader {
             throw new RuntimeException(
                     "The config of SimpleImageLoader is Null, please call the init(ImageLoaderConfig config) method to initialize");
         }
+
+        if (mConfig.loadPolicy == null) {
+            mConfig.loadPolicy = new SerialPolicy();
+        }
         if (mCache == null) {
             mCache = new NoCache();
         }
+
     }
 
     public void displayImage(ImageView imageView, String uri) {
@@ -200,6 +209,7 @@ public final class SimpleImageLoader {
         }
 
         if (hasLoadingPlaceholder(bean.displayConfig)) {
+            Log.e("", "### loading res : " + bean.displayConfig.loadingResId);
             mUIHandler.post(new Runnable() {
 
                 @Override
@@ -213,7 +223,7 @@ public final class SimpleImageLoader {
                 RequestListener<Bitmap>() {
                     @Override
                     public void onComplete(int stCode, Bitmap response, String errMsg) {
-                        updateImageViewIfNeed(bean, Schema.URL, response);
+                        updateImageView(bean, Schema.URL, response);
                         // 缓存新的图片
                         if (response != null) {
                             saveInCache(bean, response);
@@ -236,8 +246,6 @@ public final class SimpleImageLoader {
         if (bitmap != null) {
             saveInCache(bean, bitmap);
         }
-
-        Log.e("", "### thread name = " + Thread.currentThread().getName());
         // 在UI线程更新ImageView
         deliveryToUIThread(bean, Schema.FILE, bitmap);
     }
@@ -253,7 +261,7 @@ public final class SimpleImageLoader {
 
             @Override
             public void run() {
-                updateImageViewIfNeed(bean, schema, bitmap);
+                updateImageView(bean, schema, bitmap);
             }
         });
     }
@@ -289,7 +297,7 @@ public final class SimpleImageLoader {
      * @param bean
      * @param result
      */
-    private void updateImageViewIfNeed(RequestBean bean, Schema schema, Bitmap result) {
+    private void updateImageView(RequestBean bean, Schema schema, Bitmap result) {
         final ImageView imageView = bean.getImageView();
         if (!isImageViewShowing(imageView)) {
             return;
@@ -337,6 +345,11 @@ public final class SimpleImageLoader {
 
     public ImageLoaderConfig getConfig() {
         return mConfig;
+    }
+
+    public void stop() {
+        mImageQueue.stop();
+        mExecutorService.shutdown();
     }
 
     /**

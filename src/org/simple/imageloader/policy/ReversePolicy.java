@@ -30,11 +30,11 @@ import org.simple.net.base.Request;
 import org.simple.net.base.Request.Priority;
 
 /**
- * 后进先出策略,即从最后加入队列的请求进行加载
+ * 逆序加载策略,即从最后加入队列的请求进行加载
  * 
  * @author mrsimple
  */
-public class LIFOPolicy implements LoadPolicy {
+public class ReversePolicy implements LoadPolicy {
 
     @Override
     public int compare(Request<Bitmap> request1, Request<Bitmap> request2) {

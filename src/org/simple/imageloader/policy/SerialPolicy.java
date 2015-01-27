@@ -30,11 +30,11 @@ import org.simple.net.base.Request;
 import org.simple.net.base.Request.Priority;
 
 /**
- * 先进先出策略
+ * 顺序加载策略
  * 
  * @author mrsimple
  */
-public class FIFOPolicy implements LoadPolicy {
+public class SerialPolicy implements LoadPolicy {
 
     @Override
     public int compare(Request<Bitmap> request1, Request<Bitmap> request2) {

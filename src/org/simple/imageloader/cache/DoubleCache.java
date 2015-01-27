@@ -26,18 +26,23 @@ package org.simple.imageloader.cache;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import org.simple.imageloader.bean.RequestBean;
 
 /**
- * 综合缓存
+ * 综合缓存,内存和sd卡双缓存
  * 
  * @author mrsimple
  */
 public class DoubleCache extends BitmapCache {
 
+    /**
+     * 
+     */
     DiskCache mDiskCache;
+    /**
+     * 
+     */
     MemoryCache mMemoryCache = new MemoryCache();
 
     public DoubleCache(Context context) {
@@ -47,13 +52,9 @@ public class DoubleCache extends BitmapCache {
     @Override
     public Bitmap get(RequestBean key) {
         Bitmap value = mMemoryCache.get(key);
-        Log.e("", "### double cache get from mem : " + value);
         if (value == null) {
             value = mDiskCache.get(key);
-            Log.e("", "### double cache get from disk : " + value);
             saveBitmapIntoMemory(key, value);
-        } else {
-            Log.e("", "### 有内存缓存 : " + key);
         }
         return value;
     }

@@ -25,6 +25,8 @@
 package org.simple.imageloader.utils;
 
 /**
+ * 图片加载来源的枚举
+ * 
  * @author mrsimple
  */
 public enum Schema {

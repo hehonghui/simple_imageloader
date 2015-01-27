@@ -39,6 +39,8 @@ import android.graphics.BitmapFactory.Options;
 import android.util.Log;
 
 /**
+ * 封装先加载图片bound，计算出inSmallSize之后再加载图片的逻辑操作
+ * 
  * @author mrsimple
  */
 public abstract class BitmapDecoder {
@@ -55,7 +57,7 @@ public abstract class BitmapDecoder {
      * @return
      */
     public Bitmap decodeBitmap(int width, int height) {
-        return decodeBitmap(width, height, false, false);
+        return decodeBitmap(width, height, false);
     }
 
     /**
@@ -65,13 +67,6 @@ public abstract class BitmapDecoder {
      * @return
      */
     public Bitmap decodeBitmap(int width, int height, boolean origiBitmap) {
-        return decodeBitmap(width, height, origiBitmap, false);
-    }
-
-    /**
-     * 
-     */
-    public Bitmap decodeBitmap(int width, int height, boolean origiBitmap, boolean lowerQuality) {
 
         // 如果请求原图,则直接加载原图
         if (origiBitmap || width <= 0 || height <= 0) {
@@ -83,7 +78,7 @@ public abstract class BitmapDecoder {
         // 通过options加载bitmap，此时返回的bitmap为空,数据将存储在options中
         decodeBitmapWithOption(options);
         // 计算缩放比例, 并且将options.inJustDecodeBounds设置为false;
-        calculateInSmall(options, width, height, lowerQuality);
+        calculateInSmall(options, width, height);
         // 通过options设置的缩放比例加载图片
         return decodeBitmapWithOption(options);
     }
@@ -105,21 +100,12 @@ public abstract class BitmapDecoder {
      * @param height
      * @param lowQuality
      */
-    protected void calculateInSmall(Options options, int width, int height, boolean lowQuality) {
-
+    protected void calculateInSmall(Options options, int width, int height) {
         // 设置缩放比例
         options.inSampleSize = computeInSmallSize(options, width, height);
 
-        Log.d("", "$## inSampleSize = " + options.inSampleSize + ", width = " + width
-                + ", height= "
-                + height);
-        if (lowQuality) {
-            Log.d("", "@@@ origin, options.inSampleSize = " + options.inSampleSize);
-            // PS:为了减少内存，可以将缩放比例调的更大一些，这样就不会导致系统频繁GC的情况了
-            options.inSampleSize += options.inSampleSize / 3;
-            Log.d("", "@@@ lowQuality, options.inSampleSize = " + options.inSampleSize);
-        }
-
+        Log.d("", "$## inSampleSize = " + options.inSampleSize
+                + ", width = " + width + ", height= " + height);
         // 图片质量
         options.inPreferredConfig = Config.RGB_565;
 
