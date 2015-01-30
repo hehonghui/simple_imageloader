@@ -77,9 +77,15 @@ public abstract class AbsLoader implements Loader {
         }
     }
 
+    /**
+     * 显示加载中的视图,注意这里也要判断imageview的tag与image uri的相等性,否则逆序加载时出现问题
+     * 
+     * @param request
+     */
     protected void showLoading(final BitmapRequest request) {
         final ImageView imageView = request.getImageView();
-        if (imageView != null && hasLoadingPlaceholder(request.displayConfig)) {
+        if (request.isImageViewTagValid()
+                && hasLoadingPlaceholder(request.displayConfig)) {
             imageView.post(new Runnable() {
 
                 @Override

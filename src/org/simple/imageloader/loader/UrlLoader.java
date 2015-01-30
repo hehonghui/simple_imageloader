@@ -80,7 +80,7 @@ public class UrlLoader extends AbsLoader {
             return bitmapDecoder.decodeBitmap(request.getImageViewWidth(),
                     request.getImageViewHeight());
         } catch (Exception e) {
-            e.printStackTrace();
+
         } finally {
             IOUtil.closeQuietly(is);
             IOUtil.closeQuietly(fos);

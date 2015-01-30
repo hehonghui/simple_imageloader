@@ -96,6 +96,15 @@ public class BitmapRequest implements Comparable<BitmapRequest> {
         }
     }
 
+    /**
+     * 判断imageview的tag与uri是否相等
+     * 
+     * @return
+     */
+    public boolean isImageViewTagValid() {
+        return mImageViewRef.get() != null ? mImageViewRef.get().getTag().equals(imageUri) : false;
+    }
+
     public ImageView getImageView() {
         return mImageViewRef.get();
     }
