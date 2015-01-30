@@ -22,20 +22,45 @@
  * THE SOFTWARE.
  */
 
-package org.simple.imageloader.policy;
+package org.simple.imageloader.loader;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
+import android.net.Uri;
 
 import org.simple.imageloader.request.BitmapRequest;
+import org.simple.imageloader.utils.BitmapDecoder;
+
+import java.io.File;
 
 /**
- * 逆序加载策略,即从最后加入队列的请求进行加载
- * 
  * @author mrsimple
  */
-public class ReversePolicy implements LoadPolicy {
+public class LocalLoader extends AbsLoader {
 
     @Override
-    public int compare(BitmapRequest request1, BitmapRequest request2) {
-        // 注意Bitmap请求要先执行最晚加入队列的请求,ImageLoader的策略
-        return request2.serialNum - request1.serialNum;
+    public Bitmap onLoadImage(BitmapRequest request) {
+        final String imagePath = Uri.parse(request.imageUri).getPath();
+        final File imgFile = new File(imagePath);
+        if (!imgFile.exists()) {
+            return null;
+        }
+
+        // 从sd卡中加载的图片仅缓存到内存中,不做本地缓存
+        request.justCacheInMem = true;
+
+        // 加载图片
+        BitmapDecoder decoder = new BitmapDecoder() {
+
+            @Override
+            public Bitmap decodeBitmapWithOption(Options options) {
+                return BitmapFactory.decodeFile(imagePath, options);
+            }
+        };
+
+        return decoder.decodeBitmap(request.getImageViewWidth(),
+                request.getImageViewHeight());
     }
+
 }

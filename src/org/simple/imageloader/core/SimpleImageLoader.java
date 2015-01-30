@@ -25,15 +25,8 @@
 package org.simple.imageloader.core;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.BitmapFactory.Options;
-import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 import android.widget.ImageView;
 
-import org.simple.imageloader.bean.RequestBean;
 import org.simple.imageloader.cache.BitmapCache;
 import org.simple.imageloader.cache.MemoryCache;
 import org.simple.imageloader.cache.NoCache;
@@ -41,15 +34,6 @@ import org.simple.imageloader.config.DisplayConfig;
 import org.simple.imageloader.config.ImageLoaderConfig;
 import org.simple.imageloader.policy.SerialPolicy;
 import org.simple.imageloader.request.BitmapRequest;
-import org.simple.imageloader.utils.BitmapDecoder;
-import org.simple.imageloader.utils.Schema;
-import org.simple.net.base.Request.RequestListener;
-import org.simple.net.core.RequestQueue;
-import org.simple.net.core.SimpleNet;
-
-import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 图片加载类,支持url和本地图片的uri形式加载.根据图片路径格式来判断是网络图片还是本地图片,如果是网络图片则交给SimpleNet框架来加载，
@@ -61,17 +45,6 @@ import java.util.concurrent.Executors;
  */
 public final class SimpleImageLoader {
     /**
-     * 用于加载本地图片的线程池
-     */
-    ExecutorService mExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime()
-            .availableProcessors());
-
-    /**
-     * 主线程消息队列的Handler
-     */
-    final static Handler mUIHandler = new Handler(Looper.getMainLooper());
-
-    /**
      * SimpleImageLoader实例
      */
     private static SimpleImageLoader sInstance;
@@ -79,7 +52,7 @@ public final class SimpleImageLoader {
     /**
      * 网络请求队列
      */
-    private RequestQueue mImageQueue = SimpleNet.newRequestQueue();
+    private RequestQueue mImageQueue;
     /**
      * 缓存
      */
@@ -119,6 +92,8 @@ public final class SimpleImageLoader {
         mConfig = config;
         mCache = mConfig.bitmapCache;
         checkConfig();
+        mImageQueue = new RequestQueue(mConfig.threadCount);
+        mImageQueue.start();
     }
 
     private void checkConfig() {
@@ -150,198 +125,12 @@ public final class SimpleImageLoader {
 
     public void displayImage(final ImageView imageView, final String uri,
             final DisplayConfig config, final ImageListener listener) {
-        // 将加载图片的操作放到队列中执行
-        this.execute(new RequestBean(imageView, uri, config, listener));
-    }
-
-    /**
-     * 执行数据库操作,可在此函数中添加整体的事物操作,避免性能问题. [ 目前还没有进行优化的必要 ]
-     * 
-     * @return
-     */
-    private final void execute(final RequestBean bean) {
-        mExecutorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                // 后台执行任务,并且将结果投递投UI线程中
-                doInBackground(bean);
-            }
-        });
-    }
-
-    /**
-     * 执行耗时操作
-     * 
-     * @param bean
-     */
-    protected void doInBackground(final RequestBean bean) {
-        Log.e("", "#### 图片加载 ----->  : " + bean.imageUri);
-        bean.displayConfig = bean.displayConfig != null ? bean.displayConfig
+        BitmapRequest request = new BitmapRequest(imageView, uri, config, listener);
+        // 加载的配置对象,如果没有设置则使用ImageLoader的配置
+        request.displayConfig = request.displayConfig != null ? request.displayConfig
                 : mConfig.displayConfig;
-        // get from cache
-        final Bitmap bitmap = mCache.get(bean);
-        Schema schema = bitmap != null ? Schema.CACHE : Schema.getSchema(bean.imageUri);
-        switch (schema) {
-            case URL:
-                fetchBitmapFromUrl(bean);
-                break;
-
-            case FILE:
-                getBitmapFromLocal(bean);
-                break;
-
-            case CACHE:
-                deliveryToUIThread(bean, Schema.CACHE, bitmap);
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    /**
-     * 从网络上加载图片
-     * 
-     * @param bean
-     */
-    private void fetchBitmapFromUrl(final RequestBean bean) {
-        final ImageView imageView = bean.getImageView();
-        if (!isImageViewShowing(imageView)) {
-            return;
-        }
-
-        if (hasLoadingPlaceholder(bean.displayConfig)) {
-            mUIHandler.post(new Runnable() {
-
-                @Override
-                public void run() {
-                    imageView.setImageResource(bean.displayConfig.loadingResId);
-                }
-            });
-        }
-
-        BitmapRequest bitmapRequest = new BitmapRequest(bean.imageUri, new
-                RequestListener<Bitmap>() {
-                    @Override
-                    public void onComplete(int stCode, Bitmap response, String errMsg) {
-                        updateImageView(bean, Schema.URL, response);
-                        // 缓存新的图片
-                        if (response != null) {
-                            saveInCache(bean, response);
-                        }
-                    }
-                });
-
-        mImageQueue.addRequest(bitmapRequest);
-    }
-
-    /**
-     * 从本地加载图片
-     * 
-     * @param bean
-     */
-    private void getBitmapFromLocal(final RequestBean bean) {
-        final String imagePath = Uri.parse(bean.imageUri).getPath();
-        final Bitmap bitmap = decodeBitmapFromPath(bean, imagePath);
-        // 缓存新的图片
-        if (bitmap != null) {
-            saveInCache(bean, bitmap);
-        }
-        // 在UI线程更新ImageView
-        deliveryToUIThread(bean, Schema.FILE, bitmap);
-    }
-
-    /**
-     * 将结果投递到UI,更新ImageView
-     * 
-     * @param bean
-     * @param bitmap
-     */
-    private void deliveryToUIThread(final RequestBean bean, final Schema schema, final Bitmap bitmap) {
-        mUIHandler.post(new Runnable() {
-
-            @Override
-            public void run() {
-                updateImageView(bean, schema, bitmap);
-            }
-        });
-    }
-
-    /**
-     * 从本地路径中解析Bitmap
-     * 
-     * @param bean
-     * @param imagePath
-     * @return
-     */
-    private Bitmap decodeBitmapFromPath(final RequestBean bean, final String imagePath) {
-        final File imgFile = new File(imagePath);
-        if (!imgFile.exists()) {
-            return null;
-        }
-
-        BitmapDecoder decoder = new BitmapDecoder() {
-
-            @Override
-            public Bitmap decodeBitmapWithOption(Options options) {
-                return BitmapFactory.decodeFile(imagePath, options);
-            }
-        };
-
-        return decoder.decodeBitmap(bean.getImageViewWidth(),
-                bean.getImageViewHeight());
-    }
-
-    /**
-     * 更新ImageView
-     * 
-     * @param bean
-     * @param result
-     */
-    private void updateImageView(RequestBean bean, Schema schema, Bitmap result) {
-        final ImageView imageView = bean.getImageView();
-        if (!isImageViewShowing(imageView)) {
-            return;
-        }
-
-        final String uri = bean.imageUri;
-        if (result != null && imageView.getTag().equals(uri)) {
-            imageView.setImageBitmap(result);
-        }
-
-        // 加载失败
-        if (result == null && hasFaildPlaceholder(bean.displayConfig)) {
-            imageView.setImageResource(bean.displayConfig.failedResId);
-        }
-
-        // 回调接口
-        if (bean.imageListener != null) {
-            bean.imageListener.onComplete(imageView, result, uri);
-        }
-    }
-
-    private void saveInCache(final RequestBean bean, final Bitmap result) {
-        mExecutorService.execute(new Runnable() {
-
-            @Override
-            public void run() {
-                synchronized (mCache) {
-                    mCache.put(bean, result);
-                }
-            }
-        });
-    }
-
-    private boolean hasLoadingPlaceholder(DisplayConfig displayConfig) {
-        return displayConfig != null && displayConfig.loadingResId > 0;
-    }
-
-    private boolean hasFaildPlaceholder(DisplayConfig displayConfig) {
-        return displayConfig != null && displayConfig.failedResId > 0;
-    }
-
-    private boolean isImageViewShowing(ImageView imageView) {
-        return imageView != null && imageView.isShown();
+        // 添加对队列中
+        mImageQueue.addRequest(request);
     }
 
     public ImageLoaderConfig getConfig() {
@@ -350,7 +139,6 @@ public final class SimpleImageLoader {
 
     public void stop() {
         mImageQueue.stop();
-        mExecutorService.shutdown();
     }
 
     /**

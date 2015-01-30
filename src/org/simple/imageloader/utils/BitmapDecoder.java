@@ -86,7 +86,7 @@ public abstract class BitmapDecoder {
     /**
      * @return
      */
-    protected Options getJustDecodeBoundsOptions() {
+    private Options getJustDecodeBoundsOptions() {
         //
         BitmapFactory.Options options = new BitmapFactory.Options();
         // 设置为true,表示解析Bitmap对象，该对象不占内存

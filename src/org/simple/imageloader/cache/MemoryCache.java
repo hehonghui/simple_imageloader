@@ -27,16 +27,16 @@ package org.simple.imageloader.cache;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 
-import org.simple.imageloader.bean.RequestBean;
+import org.simple.imageloader.request.BitmapRequest;
 
 /**
  * 图片的内存缓存,key为图片的uri,值为图片本身
  * 
  * @author mrsimple
  */
-public class MemoryCache extends BitmapCache {
+public class MemoryCache implements BitmapCache {
 
-    private LruCache<RequestBean, Bitmap> mMemeryCache;
+    private LruCache<String, Bitmap> mMemeryCache;
 
     public MemoryCache() {
 
@@ -45,10 +45,10 @@ public class MemoryCache extends BitmapCache {
 
         // 取4分之一的可用内存作为缓存
         final int cacheSize = maxMemory / 4;
-        mMemeryCache = new LruCache<RequestBean, Bitmap>(cacheSize) {
+        mMemeryCache = new LruCache<String, Bitmap>(cacheSize) {
 
             @Override
-            protected int sizeOf(RequestBean key, Bitmap bitmap) {
+            protected int sizeOf(String key, Bitmap bitmap) {
                 return bitmap.getRowBytes() * bitmap.getHeight() / 1024;
             }
         };
@@ -56,18 +56,18 @@ public class MemoryCache extends BitmapCache {
     }
 
     @Override
-    public Bitmap get(RequestBean key) {
-        return mMemeryCache.get(key);
+    public Bitmap get(BitmapRequest key) {
+        return mMemeryCache.get(key.imageUri);
     }
 
     @Override
-    public void put(RequestBean key, Bitmap value) {
-        mMemeryCache.put(key, value);
+    public void put(BitmapRequest key, Bitmap value) {
+        mMemeryCache.put(key.imageUri, value);
     }
 
     @Override
-    public void remove(RequestBean key) {
-        mMemeryCache.remove(key);
+    public void remove(BitmapRequest key) {
+        mMemeryCache.remove(key.imageUri);
     }
 
 }

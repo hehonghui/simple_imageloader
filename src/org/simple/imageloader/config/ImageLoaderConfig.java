@@ -50,6 +50,20 @@ public class ImageLoaderConfig {
      */
     public LoadPolicy loadPolicy = new SerialPolicy();
 
+    /**
+     * 
+     */
+    public int threadCount = Runtime.getRuntime().availableProcessors() + 1;
+
+    /**
+     * @param count
+     * @return
+     */
+    public ImageLoaderConfig setThreadCount(int count) {
+        threadCount = Math.max(1, threadCount);
+        return this;
+    }
+
     public ImageLoaderConfig setCache(BitmapCache cache) {
         bitmapCache = cache;
         return this;

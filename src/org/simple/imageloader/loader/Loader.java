@@ -22,20 +22,10 @@
  * THE SOFTWARE.
  */
 
-package org.simple.imageloader.policy;
+package org.simple.imageloader.loader;
 
 import org.simple.imageloader.request.BitmapRequest;
 
-/**
- * 逆序加载策略,即从最后加入队列的请求进行加载
- * 
- * @author mrsimple
- */
-public class ReversePolicy implements LoadPolicy {
-
-    @Override
-    public int compare(BitmapRequest request1, BitmapRequest request2) {
-        // 注意Bitmap请求要先执行最晚加入队列的请求,ImageLoader的策略
-        return request2.serialNum - request1.serialNum;
-    }
+public interface Loader {
+    public void loadImage(BitmapRequest result);
 }

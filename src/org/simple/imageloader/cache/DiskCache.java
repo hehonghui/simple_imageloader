@@ -36,12 +36,11 @@ import android.util.Log;
 
 import com.jakewharton.disklrucache.DiskLruCache;
 import com.jakewharton.disklrucache.DiskLruCache.Snapshot;
-import com.jakewharton.disklrucache.Util;
+import com.jakewharton.disklrucache.IOUtil;
 
-import org.simple.imageloader.bean.RequestBean;
+import org.simple.imageloader.request.BitmapRequest;
 import org.simple.imageloader.utils.BitmapDecoder;
 import org.simple.imageloader.utils.Md5Helper;
-import org.simple.imageloader.utils.Schema;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -52,7 +51,7 @@ import java.io.OutputStream;
 /**
  * @author mrsimple
  */
-public class DiskCache extends BitmapCache {
+public class DiskCache implements BitmapCache {
 
     /**
      * 1MB
@@ -139,7 +138,7 @@ public class DiskCache extends BitmapCache {
     }
 
     @Override
-    public synchronized Bitmap get(final RequestBean bean) {
+    public synchronized Bitmap get(final BitmapRequest bean) {
         // 图片解析器
         BitmapDecoder decoder = new BitmapDecoder() {
 
@@ -148,14 +147,13 @@ public class DiskCache extends BitmapCache {
                 final InputStream inputStream = getInputStream(bean.imageUriMd5);
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null,
                         options);
-                Util.closeQuietly(inputStream);
+                IOUtil.closeQuietly(inputStream);
                 return bitmap;
             }
         };
 
         return decoder.decodeBitmap(bean.getImageViewWidth(),
                 bean.getImageViewHeight());
-
     }
 
     private InputStream getInputStream(String md5) {
@@ -176,15 +174,16 @@ public class DiskCache extends BitmapCache {
      * @see org.simple.net.cache.Cache#put(java.lang.Object, java.lang.Object)
      */
     @Override
-    public void put(RequestBean key, Bitmap value) {
-        if (Schema.getSchema(key.imageUri) != Schema.URL) {
+    public void put(BitmapRequest request, Bitmap value) {
+        if (request.justCacheInMem) {
+            Log.e(IMAGE_DISK_CACHE, "### 仅缓存在内存中");
             return;
         }
 
         DiskLruCache.Editor editor = null;
         try {
             // 如果没有找到对应的缓存，则准备从网络上请求数据，并写入缓存
-            editor = mDiskLruCache.edit(key.imageUriMd5);
+            editor = mDiskLruCache.edit(request.imageUriMd5);
             if (editor != null) {
                 OutputStream outputStream = editor.newOutputStream(0);
                 if (writeBitmapToDisk(value, outputStream)) {
@@ -193,7 +192,7 @@ public class DiskCache extends BitmapCache {
                 } else {
                     editor.abort();
                 }
-                Util.closeQuietly(outputStream);
+                IOUtil.closeQuietly(outputStream);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -210,16 +209,15 @@ public class DiskCache extends BitmapCache {
             e.printStackTrace();
             result = false;
         } finally {
-            Util.closeQuietly(bos);
+            IOUtil.closeQuietly(bos);
         }
 
         return result;
     }
 
     @Override
-    public void remove(RequestBean key) {
+    public void remove(BitmapRequest key) {
         try {
-            // mDiskLruCache.remove(Md5Helper.toMD5(key.imageUri));
             mDiskLruCache.remove(Md5Helper.toMD5(key.imageUriMd5));
         } catch (IOException e) {
             e.printStackTrace();

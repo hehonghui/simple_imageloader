@@ -22,26 +22,20 @@
  * THE SOFTWARE.
  */
 
-package org.simple.imageloader.utils;
+package org.simple.imageloader.loader;
 
-/**
- * 图片加载来源的枚举
- * 
- * @author mrsimple
- */
-public enum Schema {
-    URL,
-    CACHE,
-    FILE;
+import android.graphics.Bitmap;
+import android.util.Log;
 
-    public static Schema getSchema(String uri) {
-        if (uri.startsWith("http") || uri.startsWith("https")) {
-            return URL;
-        } else if (uri.startsWith("file:")) {
-            return FILE;
-        } else {
-            throw new RuntimeException(
-                    "wrong protocol, SimpleImageLoader just support url or local image.");
-        }
+import org.simple.imageloader.request.BitmapRequest;
+
+public class NullLoader extends AbsLoader {
+
+    @Override
+    public Bitmap onLoadImage(BitmapRequest requestBean) {
+        Log.e(NullLoader.class.getSimpleName(), "### wrong schema, your image uri is : "
+                + requestBean.imageUri);
+        return null;
     }
+
 }

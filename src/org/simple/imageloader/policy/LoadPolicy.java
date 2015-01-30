@@ -24,9 +24,7 @@
 
 package org.simple.imageloader.policy;
 
-import android.graphics.Bitmap;
-
-import org.simple.net.base.Request;
+import org.simple.imageloader.request.BitmapRequest;
 
 /**
  * 加载策略接口
@@ -34,5 +32,5 @@ import org.simple.net.base.Request;
  * @author mrsimple
  */
 public interface LoadPolicy {
-    public int compare(Request<Bitmap> request1, Request<Bitmap> request2);
+    public int compare(BitmapRequest request1, BitmapRequest request2);
 }

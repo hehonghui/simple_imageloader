@@ -22,43 +22,19 @@
  * THE SOFTWARE.
  */
 
-package org.simple.imageloader.bean;
+package org.simple.imageloader.utils;
 
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import org.simple.imageloader.config.DisplayConfig;
-import org.simple.imageloader.core.SimpleImageLoader.ImageListener;
-import org.simple.imageloader.utils.Md5Helper;
-
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 
-/**
- * @author mrsimple
- */
-public class RequestBean {
-    Reference<ImageView> mImageViewRef;
-    public DisplayConfig displayConfig;
-    public ImageListener imageListener;
-    public String imageUri = "";
-    public String imageUriMd5 = "";
+public class ImageViewHelper {
 
-    public RequestBean(ImageView imageView, String uri, DisplayConfig config,
-            ImageListener listener) {
-        mImageViewRef = new WeakReference<ImageView>(imageView);
-        displayConfig = config;
-        imageListener = listener;
-        imageUri = uri;
-        imageView.setTag(uri);
-        imageUriMd5 = Md5Helper.toMD5(imageUri) ;
-    }
-
-    public ImageView getImageView() {
-        return mImageViewRef.get();
-    }
+    // todo : 配置类中
+    private static int DEFAULT_WIDTH = 200;
+    private static int DEFAULT_HEIGHT = 200;
 
     /**
      * {@inheritDoc}
@@ -71,8 +47,7 @@ public class RequestBean {
      * 2) Get <b>layout_width</b>. If it hasn't exact value then go to step #3.<br />
      * 3) Get <b>maxWidth</b>.
      */
-    public int getImageViewWidth() {
-        ImageView imageView = mImageViewRef.get();
+    public static int getImageViewWidth(ImageView imageView) {
         if (imageView != null) {
             final ViewGroup.LayoutParams params = imageView.getLayoutParams();
             int width = 0;
@@ -87,7 +62,7 @@ public class RequestBean {
             }
             return width;
         }
-        return 0;
+        return DEFAULT_WIDTH;
     }
 
     /**
@@ -102,8 +77,7 @@ public class RequestBean {
      * <br />
      * 3) Get <b>maxHeight</b>.
      */
-    public int getImageViewHeight() {
-        ImageView imageView = mImageViewRef.get();
+    public static int getImageViewHeight(ImageView imageView) {
         if (imageView != null) {
             final ViewGroup.LayoutParams params = imageView.getLayoutParams();
             int height = 0;
@@ -120,7 +94,7 @@ public class RequestBean {
             }
             return height;
         }
-        return 0;
+        return DEFAULT_HEIGHT;
     }
 
     private static int getImageViewFieldValue(Object object, String fieldName) {
@@ -137,30 +111,4 @@ public class RequestBean {
         }
         return value;
     }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((imageUri == null) ? 0 : imageUri.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        RequestBean other = (RequestBean) obj;
-        if (imageUri == null) {
-            if (other.imageUri != null)
-                return false;
-        } else if (!imageUri.equals(other.imageUri))
-            return false;
-        return true;
-    }
-
 }

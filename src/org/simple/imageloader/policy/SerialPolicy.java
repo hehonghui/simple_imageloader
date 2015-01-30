@@ -24,10 +24,7 @@
 
 package org.simple.imageloader.policy;
 
-import android.graphics.Bitmap;
-
-import org.simple.net.base.Request;
-import org.simple.net.base.Request.Priority;
+import org.simple.imageloader.request.BitmapRequest;
 
 /**
  * 顺序加载策略
@@ -37,13 +34,9 @@ import org.simple.net.base.Request.Priority;
 public class SerialPolicy implements LoadPolicy {
 
     @Override
-    public int compare(Request<Bitmap> request1, Request<Bitmap> request2) {
-        Priority myPriority = request1.getPriority();
-        Priority anotherPriority = request2.getPriority();
+    public int compare(BitmapRequest request1, BitmapRequest request2) {
         // 如果优先级相等,那么按照添加到队列的序列号顺序来执行
-        return myPriority.equals(anotherPriority) ? request1.getSerialNumber()
-                - request2.getSerialNumber()
-                : myPriority.ordinal() - anotherPriority.ordinal();
+        return request1.serialNum - request2.serialNum;
     }
 
 }

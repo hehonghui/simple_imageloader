@@ -26,8 +26,7 @@ package org.simple.imageloader.cache;
 
 import android.graphics.Bitmap;
 
-import org.simple.imageloader.bean.RequestBean;
-import org.simple.net.cache.Cache;
+import org.simple.imageloader.request.BitmapRequest;
 
 /**
  * 图片缓存抽象类,具体的子类有不使用缓存{@see NoCache}、内存缓存{@see MemoryCache}、sd卡缓存{@see
@@ -35,6 +34,19 @@ import org.simple.net.cache.Cache;
  * 
  * @author mrsimple
  */
-public abstract class BitmapCache implements Cache<RequestBean, Bitmap> {
+/**
+ * 请求缓存接口
+ * 
+ * @author mrsimple
+ * @param <K> key的类型
+ * @param <V> value类型
+ */
+public interface BitmapCache {
+
+    public Bitmap get(BitmapRequest key);
+
+    public void put(BitmapRequest key, Bitmap value);
+
+    public void remove(BitmapRequest key);
 
 }
