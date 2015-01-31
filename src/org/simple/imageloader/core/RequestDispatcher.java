@@ -37,7 +37,7 @@ import java.util.concurrent.BlockingQueue;
  * 
  * @author mrsimple
  */
-final class ImageDispatcher extends Thread {
+final class RequestDispatcher extends Thread {
 
     /**
      * 网络请求队列
@@ -47,7 +47,7 @@ final class ImageDispatcher extends Thread {
     /**
      * @param queue
      */
-    public ImageDispatcher(BlockingQueue<BitmapRequest> queue) {
+    public RequestDispatcher(BlockingQueue<BitmapRequest> queue) {
         mRequestQueue = queue;
     }
 

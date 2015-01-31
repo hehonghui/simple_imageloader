@@ -58,7 +58,7 @@ public final class RequestQueue {
     /**
      * NetworkExecutor,执行网络请求的线程
      */
-    private ImageDispatcher[] mDispatchers = null;
+    private RequestDispatcher[] mDispatchers = null;
 
     /**
      * 
@@ -79,10 +79,10 @@ public final class RequestQueue {
      * 启动NetworkExecutor
      */
     private final void startNetworkExecutors() {
-        mDispatchers = new ImageDispatcher[mDispatcherNums];
+        mDispatchers = new RequestDispatcher[mDispatcherNums];
         for (int i = 0; i < mDispatcherNums; i++) {
             Log.e("", "### 启动线程 " + i);
-            mDispatchers[i] = new ImageDispatcher(mRequestQueue);
+            mDispatchers[i] = new RequestDispatcher(mRequestQueue);
             mDispatchers[i].start();
         }
     }
