@@ -1,6 +1,6 @@
 <img src="http://avatar.csdn.net/blogpic/20150127140257890.jpg">    
 # SimpleImageLoader Framework
-   A Simple ImageLoader for Android.
+   A Simple ImageLoader for Android, articles for this framework <a href="http://blog.csdn.net/column/details/android-imageloader.html">How to make a ImageLoader Framework</a>.
 
 
 ## Useage 
