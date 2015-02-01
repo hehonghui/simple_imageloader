@@ -76,9 +76,9 @@ public final class RequestQueue {
     }
 
     /**
-     * 启动NetworkExecutor
+     * 启动RequestDispatcher
      */
-    private final void startNetworkExecutors() {
+    private final void startDispatchers() {
         mDispatchers = new RequestDispatcher[mDispatcherNums];
         for (int i = 0; i < mDispatcherNums; i++) {
             Log.e("", "### 启动线程 " + i);
@@ -89,11 +89,11 @@ public final class RequestQueue {
 
     public void start() {
         stop();
-        startNetworkExecutors();
+        startDispatchers();
     }
 
     /**
-     * 停止NetworkExecutor
+     * 停止RequestDispatcher
      */
     public void stop() {
         if (mDispatchers != null && mDispatchers.length > 0) {

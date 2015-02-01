@@ -33,7 +33,7 @@ import org.simple.imageloader.request.BitmapRequest;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * 网络请求Executor,继承自Thread,从网络请求队列中循环读取请求并且执行
+ * 网络请求Dispatcher,继承自Thread,从网络请求队列中循环读取请求并且执行
  * 
  * @author mrsimple
  */
