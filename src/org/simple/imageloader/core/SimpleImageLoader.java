@@ -29,7 +29,6 @@ import android.widget.ImageView;
 
 import org.simple.imageloader.cache.BitmapCache;
 import org.simple.imageloader.cache.MemoryCache;
-import org.simple.imageloader.cache.NoCache;
 import org.simple.imageloader.config.DisplayConfig;
 import org.simple.imageloader.config.ImageLoaderConfig;
 import org.simple.imageloader.policy.SerialPolicy;
@@ -106,7 +105,7 @@ public final class SimpleImageLoader {
             mConfig.loadPolicy = new SerialPolicy();
         }
         if (mCache == null) {
-            mCache = new NoCache();
+            mCache = new MemoryCache();
         }
 
     }

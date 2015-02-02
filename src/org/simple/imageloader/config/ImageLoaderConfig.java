@@ -60,7 +60,7 @@ public class ImageLoaderConfig {
      * @return
      */
     public ImageLoaderConfig setThreadCount(int count) {
-        threadCount = Math.max(1, threadCount);
+        threadCount = Math.max(1, count);
         return this;
     }
 
