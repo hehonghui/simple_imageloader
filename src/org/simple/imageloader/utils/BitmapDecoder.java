@@ -57,19 +57,8 @@ public abstract class BitmapDecoder {
      * @return
      */
     public Bitmap decodeBitmap(int width, int height) {
-        return decodeBitmap(width, height, false);
-    }
-
-    /**
-     * @param width 图片的目标宽度
-     * @param height 图片的目标高度
-     * @param origiBitmap 是否直接解析原图
-     * @return
-     */
-    public Bitmap decodeBitmap(int width, int height, boolean origiBitmap) {
-
         // 如果请求原图,则直接加载原图
-        if (origiBitmap || width <= 0 || height <= 0) {
+        if (width <= 0 || height <= 0) {
             return decodeBitmapWithOption(null);
         }
 
@@ -81,6 +70,15 @@ public abstract class BitmapDecoder {
         calculateInSmall(options, width, height);
         // 通过options设置的缩放比例加载图片
         return decodeBitmapWithOption(options);
+    }
+
+    /**
+     * 加载原图
+     * 
+     * @return
+     */
+    public Bitmap decodeOriginBitmap() {
+        return decodeBitmapWithOption(null);
     }
 
     /**
