@@ -62,13 +62,13 @@ public abstract class BitmapDecoder {
             return decodeBitmapWithOption(null);
         }
 
-        // 获取只加载Bitmap宽高等数据的Option, 即设置options.inJustDecodeBounds = true;
+        // 1、获取只加载Bitmap宽高等数据的Option, 即设置options.inJustDecodeBounds = true;
         BitmapFactory.Options options = getJustDecodeBoundsOptions();
-        // 通过options加载bitmap，此时返回的bitmap为空,数据将存储在options中
+        // 2、通过options加载bitmap，此时返回的bitmap为空,数据将存储在options中
         decodeBitmapWithOption(options);
-        // 计算缩放比例, 并且将options.inJustDecodeBounds设置为false;
+        // 3、计算缩放比例, 并且将options.inJustDecodeBounds设置为false;
         calculateInSmall(options, width, height);
-        // 通过options设置的缩放比例加载图片
+        // 4、通过options设置的缩放比例加载图片
         return decodeBitmapWithOption(options);
     }
 
