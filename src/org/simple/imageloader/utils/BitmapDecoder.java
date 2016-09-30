@@ -56,18 +56,19 @@ public abstract class BitmapDecoder {
      * @param height 图片的目标高度
      * @return
      */
-    public Bitmap decodeBitmap(int width, int height) {
+    public final Bitmap decodeBitmap(int width, int height) {
         // 如果请求原图,则直接加载原图
         if (width <= 0 || height <= 0) {
             return decodeBitmapWithOption(null);
         }
-
         // 1、获取只加载Bitmap宽高等数据的Option, 即设置options.inJustDecodeBounds = true;
-        BitmapFactory.Options options = getJustDecodeBoundsOptions();
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        // 设置为true,表示解析Bitmap对象，该对象不占内存
+        options.inJustDecodeBounds = true;
         // 2、通过options加载bitmap，此时返回的bitmap为空,数据将存储在options中
         decodeBitmapWithOption(options);
         // 3、计算缩放比例, 并且将options.inJustDecodeBounds设置为false;
-        calculateInSmall(options, width, height);
+        configBitmapOptions(options, width, height);
         // 4、通过options设置的缩放比例加载图片
         return decodeBitmapWithOption(options);
     }
@@ -82,23 +83,12 @@ public abstract class BitmapDecoder {
     }
 
     /**
-     * @return
-     */
-    private Options getJustDecodeBoundsOptions() {
-        //
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        // 设置为true,表示解析Bitmap对象，该对象不占内存
-        options.inJustDecodeBounds = true;
-        return options;
-    }
-
-    /**
      * @param options
      * @param width
      * @param height
      * @param lowQuality
      */
-    protected void calculateInSmall(Options options, int width, int height) {
+    protected void configBitmapOptions(Options options, int width, int height) {
         // 设置缩放比例
         options.inSampleSize = computeInSmallSize(options, width, height);
 
@@ -106,10 +96,8 @@ public abstract class BitmapDecoder {
                 + ", width = " + width + ", height= " + height);
         // 图片质量
         options.inPreferredConfig = Config.RGB_565;
-
         // 设置为false,解析Bitmap对象加入到内存中
         options.inJustDecodeBounds = false;
-
         options.inPurgeable = true;
         options.inInputShareable = true;
     }

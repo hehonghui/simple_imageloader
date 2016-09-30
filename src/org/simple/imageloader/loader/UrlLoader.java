@@ -26,16 +26,13 @@ package org.simple.imageloader.loader;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.BitmapFactory.Options;
 
 import com.jakewharton.disklrucache.IOUtil;
 
 import org.simple.imageloader.request.BitmapRequest;
-import org.simple.imageloader.utils.BitmapDecoder;
 
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -50,43 +47,23 @@ public class UrlLoader extends AbsLoader {
         final String imageUrl = request.imageUri;
         FileOutputStream fos = null;
         InputStream is = null;
+        Bitmap bitmap = null ;
+         HttpURLConnection conn = null ;
         try {
             URL url = new URL(imageUrl);
-            final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             is = new BufferedInputStream(conn.getInputStream());
-            is.mark(is.available());
-
-            final InputStream inputStream = is;
-            BitmapDecoder bitmapDecoder = new BitmapDecoder() {
-
-                @Override
-                public Bitmap decodeBitmapWithOption(Options options) {
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
-                    //
-                    if (options.inJustDecodeBounds) {
-                        try {
-                            inputStream.reset();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        // 关闭流
-                        conn.disconnect();
-                    }
-                    return bitmap;
-                }
-            };
-
-            return bitmapDecoder.decodeBitmap(request.getImageViewWidth(),
-                    request.getImageViewHeight());
+            bitmap =  BitmapFactory.decodeStream(is, null, null);
         } catch (Exception e) {
-
+        	e.printStackTrace();
         } finally {
             IOUtil.closeQuietly(is);
             IOUtil.closeQuietly(fos);
+            if ( conn != null ) {
+                // 关闭流
+                conn.disconnect();
+			}
         }
-
-        return null;
+        return bitmap;
     }
-
 }

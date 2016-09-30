@@ -56,10 +56,10 @@ public class MainActivity extends FragmentActivity {
 
 
     public final static String[] imageThumbUrls = new String[] {
-            "http://img.my.csdn.net/uploads/201407/26/1406383299_1976.jpg",
+            "http://images.newsdog.today/thumb_e2f6cea2ba6ad2035ddce3784d45df74",
             "http://img.my.csdn.net/uploads/201407/26/1406383291_6518.jpg",
-            "http://img.my.csdn.net/uploads/201407/26/1406383291_8239.jpg",
-            "http://img.my.csdn.net/uploads/201407/26/1406383290_9329.jpg",
+            "http://images.newsdog.today/origin_5b86722b2de1e6996abd5770b1c343a8",
+            "http://images.newsdog.today/thumb_fa06abd117c930d7199c148ee339c766",
             "http://img.my.csdn.net/uploads/201407/26/1406383290_1042.jpg",
             "http://img.my.csdn.net/uploads/201407/26/1406383275_3977.jpg",
             "http://img.my.csdn.net/uploads/201407/26/1406383265_8550.jpg",
